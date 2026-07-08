@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('job_postings', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('recruiter_profile_id')->constrained()->cascadeOnDelete();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->text('description');
+            $table->text('requirements')->nullable();
+            $table->json('skills')->nullable();            // ["React","Laravel"]
+            $table->string('location')->nullable();
+            $table->string('employment_type')->nullable(); // full-time / part-time / contract
+            $table->string('work_mode')->nullable();       // remote / onsite / hybrid
+            $table->string('experience_level')->nullable();// junior / mid / senior
+            $table->decimal('salary_min', 10, 2)->nullable();
+            $table->decimal('salary_max', 10, 2)->nullable();
+            $table->string('status')->default('draft');    // draft / published / paused / closed
+            $table->date('deadline')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('job_postings');
+    }
+};
