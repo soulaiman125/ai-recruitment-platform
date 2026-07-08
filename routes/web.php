@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
         Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
+        Route::post('resumes/{resume}/analyze', [ResumeController::class, 'analyze'])->name('resumes.analyze');
         Route::patch('resumes/{resume}/default', [ResumeController::class, 'setDefault'])->name('resumes.setDefault');
         Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
     });

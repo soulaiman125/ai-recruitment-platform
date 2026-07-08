@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CandidateProfile;
 use App\Models\Resume;
 use App\Models\User;
+use App\Services\ResumeAnalysisException;
+use App\Services\ResumeAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -24,6 +26,9 @@ class ResumeController extends Controller
     {
         $resumes = $this->candidateProfile()
             ->resumes()
+            // The table renders the analysis badge, and the dialog renders the
+            // whole analysis, so both come down with the list.
+            ->with('analysis')
             // Same-second uploads tie on `created_at`, so the id keeps the
             // table from shuffling between requests.
             ->latest()
@@ -33,6 +38,29 @@ class ResumeController extends Controller
         return Inertia::render('candidate/resumes/index', [
             'resumes' => $resumes,
         ]);
+    }
+
+    /**
+     * Run the configured AI provider over the given resume.
+     */
+    public function analyze(Resume $resume, ResumeAnalysisService $analyses): RedirectResponse
+    {
+        $this->authorizeResume($resume);
+
+        try {
+            // Synchronous on purpose: `QUEUE_CONNECTION=sync` anyway, and the
+            // candidate is sitting in front of the result. The service records
+            // `status = failed` before it rethrows, so the row stays truthful.
+            $analyses->analyze($resume);
+        } catch (ResumeAnalysisException $e) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Resume analyzed.')]);
+
+        return back();
     }
 
     /**

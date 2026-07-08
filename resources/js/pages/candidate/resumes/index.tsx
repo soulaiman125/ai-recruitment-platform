@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { CircleCheck, Lightbulb, Sparkles, TriangleAlert } from 'lucide-react';
 import ResumeController from '@/actions/App/Http/Controllers/Candidate/ResumeController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
     Table,
     TableBody,
@@ -23,9 +25,20 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    analysisStatusClasses,
+    analysisStatusVariants,
+    scoreStrokeClasses,
+    scoreTextClasses,
+    scoreTone,
+} from '@/lib/analysis-status';
 import { index } from '@/routes/candidate/resumes';
-import { formatFileSize, resumeUrl } from '@/types/resume';
-import type { Resume } from '@/types/resume';
+import { formatFileSize, isCompleted, resumeUrl } from '@/types/resume';
+import type {
+    Resume,
+    ResumeAnalysis,
+    ResumeWithAnalysis,
+} from '@/types/resume';
 
 function UploadForm() {
     return (
@@ -151,7 +164,331 @@ function DeleteResumeDialog({ resume }: { resume: Resume }) {
     );
 }
 
-export default function ResumesIndex({ resumes }: { resumes: Resume[] }) {
+/** The AI's 0-100 verdict, as a donut that fills clockwise from the top. */
+function ScoreRing({ score }: { score: number }) {
+    const radius = 52;
+    const circumference = 2 * Math.PI * radius;
+    const tone = scoreTone(score);
+
+    // A full circle is offset 0, an empty one is offset `circumference`.
+    const offset =
+        circumference * (1 - Math.min(100, Math.max(0, score)) / 100);
+
+    return (
+        <div className="relative flex size-32 shrink-0 items-center justify-center">
+            <svg viewBox="0 0 120 120" className="size-32 -rotate-90">
+                <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    fill="none"
+                    strokeWidth="10"
+                    className="stroke-muted"
+                />
+
+                <circle
+                    cx="60"
+                    cy="60"
+                    r={radius}
+                    fill="none"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className={scoreStrokeClasses[tone]}
+                />
+            </svg>
+
+            <div className="absolute flex flex-col items-center">
+                <span
+                    className={`text-4xl font-semibold tabular-nums ${scoreTextClasses[tone]}`}
+                >
+                    {score}
+                </span>
+
+                <span className="text-xs text-muted-foreground">
+                    out of 100
+                </span>
+            </div>
+        </div>
+    );
+}
+
+/** One of the three colour-coded verdict lists: strengths, gaps, next steps. */
+function FindingList({
+    title,
+    icon: Icon,
+    iconClassName,
+    items,
+}: {
+    title: string;
+    icon: typeof CircleCheck;
+    iconClassName: string;
+    items: string[];
+}) {
+    if (items.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="flex flex-col gap-2">
+            <h2 className="font-medium">{title}</h2>
+
+            <ul className="flex flex-col gap-2">
+                {items.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm">
+                        <Icon
+                            className={`mt-0.5 size-4 shrink-0 ${iconClassName}`}
+                        />
+
+                        <span className="text-muted-foreground">{item}</span>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
+function ExperienceList({ analysis }: { analysis: ResumeAnalysis }) {
+    const experience = analysis.extracted_experience ?? [];
+
+    if (experience.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="flex flex-col gap-2">
+            <h2 className="font-medium">Experience the AI found</h2>
+
+            <ul className="flex flex-col gap-3">
+                {experience.map((role, roleIndex) => (
+                    <li
+                        // The model guarantees no natural key here, so pair the
+                        // title with its position to keep the list stable.
+                        key={`${role.title ?? 'role'}-${roleIndex}`}
+                        className="text-sm"
+                    >
+                        <p className="font-medium">
+                            {role.title ?? 'Not specified'}
+
+                            {role.company && (
+                                <span className="text-muted-foreground">
+                                    {' · '}
+                                    {role.company}
+                                </span>
+                            )}
+                        </p>
+
+                        {role.duration && (
+                            <p className="text-xs text-muted-foreground">
+                                {role.duration}
+                            </p>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
+/** Submits the analyze route. Gemini takes seconds, so surface the wait. */
+function AnalyzeButton({
+    resume,
+    label,
+    variant = 'ghost',
+}: {
+    resume: Resume;
+    label: string;
+    variant?: 'ghost' | 'secondary';
+}) {
+    return (
+        <Form
+            {...ResumeController.analyze.form(resume.id)}
+            options={{
+                preserveScroll: true,
+            }}
+        >
+            {({ processing }) => (
+                <Button
+                    variant={variant}
+                    size="sm"
+                    disabled={processing}
+                    asChild
+                >
+                    <button type="submit" data-test="analyze-resume-button">
+                        {processing ? 'Analyzing…' : label}
+                    </button>
+                </Button>
+            )}
+        </Form>
+    );
+}
+
+/**
+ * The full AI verdict on one resume. Only ever rendered for a completed
+ * analysis, so every column it reads is populated.
+ */
+function AnalysisDialog({
+    resume,
+    analysis,
+}: {
+    resume: Resume;
+    analysis: ResumeAnalysis;
+}) {
+    const skills = analysis.extracted_skills ?? [];
+    const education = analysis.extracted_education ?? [];
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    data-test="view-analysis-button"
+                >
+                    View analysis
+                </Button>
+            </DialogTrigger>
+
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+                <DialogTitle>AI analysis</DialogTitle>
+
+                <DialogDescription>
+                    {resume.title ?? resume.original_name}
+                </DialogDescription>
+
+                <div className="flex flex-col gap-6">
+                    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                        <ScoreRing score={analysis.overall_score ?? 0} />
+
+                        <div className="flex flex-col gap-2">
+                            <h2 className="flex items-center gap-1.5 font-medium">
+                                <Sparkles className="size-4 shrink-0" />
+                                Summary
+                            </h2>
+
+                            <p className="text-sm text-muted-foreground">
+                                {analysis.summary === null ||
+                                analysis.summary === ''
+                                    ? 'The AI returned no summary for this resume.'
+                                    : analysis.summary}
+                            </p>
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {skills.length > 0 && (
+                        <section className="flex flex-col gap-2">
+                            <h2 className="font-medium">Skills detected</h2>
+
+                            <div className="flex flex-wrap gap-1.5">
+                                {skills.map((skill) => (
+                                    <Badge key={skill} variant="secondary">
+                                        {skill}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    <FindingList
+                        title="Strengths"
+                        icon={CircleCheck}
+                        iconClassName="text-emerald-600 dark:text-emerald-500"
+                        items={analysis.strengths ?? []}
+                    />
+
+                    <FindingList
+                        title="Weaknesses"
+                        icon={TriangleAlert}
+                        iconClassName="text-amber-600 dark:text-amber-500"
+                        items={analysis.weaknesses ?? []}
+                    />
+
+                    <FindingList
+                        title="Recommendations"
+                        icon={Lightbulb}
+                        iconClassName="text-sky-600 dark:text-sky-500"
+                        items={analysis.recommendations ?? []}
+                    />
+
+                    <ExperienceList analysis={analysis} />
+
+                    {education.length > 0 && (
+                        <section className="flex flex-col gap-2">
+                            <h2 className="font-medium">Education</h2>
+
+                            <ul className="flex flex-col gap-1">
+                                {education.map((entry, entryIndex) => (
+                                    <li
+                                        key={`${entry.degree ?? 'degree'}-${entryIndex}`}
+                                        className="text-sm text-muted-foreground"
+                                    >
+                                        {[
+                                            entry.degree,
+                                            entry.institution,
+                                            entry.year,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
+                    <Separator />
+
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs text-muted-foreground">
+                            Analyzed by {analysis.ai_provider ?? 'AI'}
+                            {analysis.analyzed_at !== null &&
+                                ` on ${new Date(analysis.analyzed_at).toLocaleString()}`}
+                        </p>
+
+                        <DialogFooter className="gap-2">
+                            <DialogClose asChild>
+                                <Button variant="secondary" type="button">
+                                    Close
+                                </Button>
+                            </DialogClose>
+
+                            <AnalyzeButton
+                                resume={resume}
+                                label="Re-analyze"
+                                variant="secondary"
+                            />
+                        </DialogFooter>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function AnalysisBadge({ analysis }: { analysis: ResumeAnalysis | null }) {
+    if (analysis === null) {
+        return <span className="text-muted-foreground">—</span>;
+    }
+
+    return (
+        <Badge
+            variant={analysisStatusVariants[analysis.status]}
+            className={analysisStatusClasses[analysis.status]}
+        >
+            {isCompleted(analysis) && analysis.overall_score !== null
+                ? `Score ${analysis.overall_score}`
+                : analysis.status}
+        </Badge>
+    );
+}
+
+export default function ResumesIndex({
+    resumes,
+}: {
+    resumes: ResumeWithAnalysis[];
+}) {
     return (
         <>
             <Head title="Resumes" />
@@ -181,6 +518,7 @@ export default function ResumesIndex({ resumes }: { resumes: Resume[] }) {
                                     <TableHead className="pl-4">Name</TableHead>
                                     <TableHead>Size</TableHead>
                                     <TableHead>Uploaded</TableHead>
+                                    <TableHead>Analysis</TableHead>
                                     <TableHead className="pr-4 text-right">
                                         Actions
                                     </TableHead>
@@ -213,6 +551,12 @@ export default function ResumesIndex({ resumes }: { resumes: Resume[] }) {
                                             ).toLocaleDateString()}
                                         </TableCell>
 
+                                        <TableCell>
+                                            <AnalysisBadge
+                                                analysis={resume.analysis}
+                                            />
+                                        </TableCell>
+
                                         <TableCell className="pr-4 text-right">
                                             <div className="flex justify-end gap-1">
                                                 <Button
@@ -229,6 +573,31 @@ export default function ResumesIndex({ resumes }: { resumes: Resume[] }) {
                                                         Download
                                                     </a>
                                                 </Button>
+
+                                                {/* A completed analysis is worth
+                                                    reading; anything else is
+                                                    worth running or retrying. */}
+                                                {isCompleted(
+                                                    resume.analysis,
+                                                ) ? (
+                                                    <AnalysisDialog
+                                                        resume={resume}
+                                                        analysis={
+                                                            resume.analysis
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <AnalyzeButton
+                                                        resume={resume}
+                                                        label={
+                                                            resume.analysis
+                                                                ?.status ===
+                                                            'failed'
+                                                                ? 'Retry analysis'
+                                                                : 'Analyze'
+                                                        }
+                                                    />
+                                                )}
 
                                                 {!resume.is_default && (
                                                     <Form
