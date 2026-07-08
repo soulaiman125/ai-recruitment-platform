@@ -1,4 +1,4 @@
-import type { JobPostingWithCompany } from '@/types/job';
+import type { ExperienceLevel, JobPostingWithCompany } from '@/types/job';
 
 export type ApplicationStatus =
     'pending' | 'reviewed' | 'interview' | 'accepted' | 'rejected';
@@ -23,6 +23,36 @@ export type Application = {
  */
 export type ApplicationWithJob = Application & {
     job_posting: JobPostingWithCompany;
+};
+
+/** The applicant behind an application, as recruiters see them. */
+export type ApplicationCandidate = {
+    id: number;
+    user_id: number;
+    title: string | null;
+    bio: string | null;
+    phone: string | null;
+    location: string | null;
+    skills: string[] | null;
+    experience_level: ExperienceLevel | null;
+    experience_years: number | null;
+    linkedin: string | null;
+    github: string | null;
+    portfolio: string | null;
+    is_open_to_work: boolean;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+    };
+};
+
+/**
+ * An application rendered for recruiters, with the candidate profile and the
+ * user account behind it eager-loaded. Eloquent snake-cases relation keys.
+ */
+export type ApplicationWithCandidate = Application & {
+    candidate: ApplicationCandidate;
 };
 
 export const APPLICATION_STATUSES: readonly ApplicationStatus[] = [

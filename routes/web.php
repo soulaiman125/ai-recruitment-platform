@@ -6,6 +6,7 @@ use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\JobBrowseController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Recruiter\ApplicationController as RecruiterApplicationController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
 use App\Http\Controllers\Recruiter\JobPostingController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('dashboard', [RecruiterDashboard::class, 'index'])->name('dashboard');
 
         Route::patch('jobs/{job}/publish', [JobPostingController::class, 'publish'])->name('jobs.publish');
+
+        Route::get('jobs/{job}/applications', [RecruiterApplicationController::class, 'index'])->name('jobs.applications.index');
+        Route::patch('jobs/{job}/applications/{application}', [RecruiterApplicationController::class, 'updateStatus'])->name('jobs.applications.updateStatus');
+
         Route::resource('jobs', JobPostingController::class)->except(['show']);
     });
 

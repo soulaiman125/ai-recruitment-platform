@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Recruiter;
 
+use App\Concerns\ScopesRecruiterJobs;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobPostingRequest;
 use App\Http\Requests\UpdateJobPostingRequest;
 use App\Models\JobPosting;
-use App\Models\RecruiterProfile;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class JobPostingController extends Controller
 {
+    use ScopesRecruiterJobs;
+
     /**
      * List the job postings owned by the authenticated recruiter.
      */
@@ -125,32 +125,6 @@ class JobPostingController extends Controller
         ]);
 
         return to_route('recruiter.jobs.index');
-    }
-
-    /**
-     * Resolve the authenticated user's recruiter profile.
-     */
-    private function recruiterProfile(): RecruiterProfile
-    {
-        /** @var User $user */
-        $user = Auth::user();
-
-        $profile = $user->recruiterProfile;
-
-        abort_if($profile === null, 403, __('You do not have a recruiter profile.'));
-
-        return $profile;
-    }
-
-    /**
-     * Ensure the job posting belongs to the authenticated recruiter.
-     */
-    private function authorizeJob(JobPosting $job): void
-    {
-        abort_unless(
-            $job->recruiter_profile_id === $this->recruiterProfile()->id,
-            403
-        );
     }
 
     /**

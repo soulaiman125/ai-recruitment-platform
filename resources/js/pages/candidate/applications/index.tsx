@@ -9,28 +9,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    applicationStatusClasses,
+    applicationStatusVariants,
+} from '@/lib/application-status';
 import { index } from '@/routes/candidate/applications';
 import { show } from '@/routes/candidate/jobs';
-import type {
-    ApplicationStatus,
-    ApplicationWithJob,
-} from '@/types/application';
-
-const statusVariants: Record<
-    ApplicationStatus,
-    'default' | 'secondary' | 'outline' | 'destructive'
-> = {
-    pending: 'secondary',
-    reviewed: 'outline',
-    interview: 'default',
-    accepted: 'default',
-    rejected: 'destructive',
-};
-
-/** Accepted is the one happy terminal state, so lift it out of the defaults. */
-const statusClasses: Partial<Record<ApplicationStatus, string>> = {
-    accepted: 'bg-emerald-600 text-white hover:bg-emerald-600/90',
-};
+import type { ApplicationWithJob } from '@/types/application';
 
 export default function ApplicationsIndex({
     applications,
@@ -96,12 +81,12 @@ export default function ApplicationsIndex({
                                         <TableCell>
                                             <Badge
                                                 variant={
-                                                    statusVariants[
+                                                    applicationStatusVariants[
                                                         application.status
                                                     ]
                                                 }
                                                 className={
-                                                    statusClasses[
+                                                    applicationStatusClasses[
                                                         application.status
                                                     ]
                                                 }

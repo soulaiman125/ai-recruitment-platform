@@ -21,6 +21,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { index } from '@/routes/recruiter/jobs';
+import { index as applications } from '@/routes/recruiter/jobs/applications';
 import type { JobPostingListItem, JobStatus } from '@/types/job';
 
 const statusVariants: Record<
@@ -146,7 +147,13 @@ export default function JobsIndex({ jobs }: { jobs: JobPostingListItem[] }) {
                                     </TableCell>
 
                                     <TableCell>
-                                        {job.applications_count}
+                                        <Link
+                                            href={applications(job.slug)}
+                                            className="hover:underline"
+                                            data-test="job-applications-link"
+                                        >
+                                            {job.applications_count}
+                                        </Link>
                                     </TableCell>
 
                                     <TableCell className="text-muted-foreground">

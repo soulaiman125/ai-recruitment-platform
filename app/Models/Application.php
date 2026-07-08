@@ -11,6 +11,8 @@ class Application extends Model
 {
     use HasFactory;
 
+    public const STATUSES = ['pending', 'reviewed', 'interview', 'accepted', 'rejected'];
+
     protected $fillable = [
         'job_posting_id',
         'candidate_profile_id',
