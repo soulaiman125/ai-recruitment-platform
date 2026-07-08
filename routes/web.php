@@ -5,6 +5,7 @@ use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
+use App\Http\Controllers\Recruiter\JobPostingController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -26,6 +27,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Recruiter
     Route::middleware('role:recruiter')->prefix('recruiter')->name('recruiter.')->group(function () {
         Route::get('dashboard', [RecruiterDashboard::class, 'index'])->name('dashboard');
+
+        Route::patch('jobs/{job}/publish', [JobPostingController::class, 'publish'])->name('jobs.publish');
+        Route::resource('jobs', JobPostingController::class)->except(['show']);
     });
 
     // Candidate

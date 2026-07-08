@@ -11,6 +11,14 @@ class JobPosting extends Model
 {
     use HasFactory;
 
+    public const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'internship'];
+
+    public const WORK_MODES = ['remote', 'onsite', 'hybrid'];
+
+    public const EXPERIENCE_LEVELS = ['junior', 'mid', 'senior'];
+
+    public const STATUSES = ['draft', 'published', 'paused', 'closed'];
+
     protected $fillable = [
         'company_id',
         'recruiter_profile_id',
@@ -35,7 +43,8 @@ class JobPosting extends Model
             'skills' => 'array',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
-            'deadline' => 'date',
+            // Serialize as Y-m-d so <input type="date"> can consume it directly.
+            'deadline' => 'date:Y-m-d',
         ];
     }
 
