@@ -33,6 +33,21 @@ export type JobPostingListItem = JobPosting & {
     applications_count: number;
 };
 
+export type JobCompany = {
+    id: number;
+    name: string;
+    slug: string;
+    logo: string | null;
+    website: string | null;
+    location: string | null;
+    industry: string | null;
+};
+
+/** A posting rendered for candidates, with its company eager-loaded. */
+export type JobPostingWithCompany = JobPosting & {
+    company: JobCompany;
+};
+
 export const EMPLOYMENT_TYPES: readonly EmploymentType[] = [
     'full-time',
     'part-time',

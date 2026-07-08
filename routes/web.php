@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
+use App\Http\Controllers\Candidate\JobBrowseController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
@@ -35,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Candidate
     Route::middleware('role:candidate')->prefix('candidate')->name('candidate.')->group(function () {
         Route::get('dashboard', [CandidateDashboard::class, 'index'])->name('dashboard');
+
+        Route::get('jobs', [JobBrowseController::class, 'index'])->name('jobs.index');
+        Route::get('jobs/{job}', [JobBrowseController::class, 'show'])->name('jobs.show');
     });
 });
 

@@ -1,5 +1,6 @@
-import { Briefcase, LayoutGrid } from 'lucide-react';
+import { Briefcase, LayoutGrid, Search } from 'lucide-react';
 import { dashboard } from '@/routes';
+import { index as candidateJobs } from '@/routes/candidate/jobs';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
 import type { NavItem } from '@/types';
 
@@ -17,7 +18,10 @@ export const navItemsByRole: Record<string, NavItem[]> = {
         { title: 'Jobs', href: recruiterJobs(), icon: Briefcase },
     ],
 
-    candidate: [{ title: 'Dashboard', href: dashboard(), icon: LayoutGrid }],
+    candidate: [
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'Browse Jobs', href: candidateJobs(), icon: Search },
+    ],
 };
 
 export function navItemsForRole(role?: string): NavItem[] {
