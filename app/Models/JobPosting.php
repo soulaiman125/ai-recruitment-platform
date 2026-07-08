@@ -37,6 +37,14 @@ class JobPosting extends Model
         'deadline',
     ];
 
+    /**
+     * كنستعملو الـ slug فـ الـ URL عوض الـ id.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected function casts(): array
     {
         return [
