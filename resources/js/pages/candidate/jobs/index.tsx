@@ -23,7 +23,7 @@ type JobsBrowseProps = {
 
 function JobCard({ job }: { job: JobPostingWithCompany }) {
     return (
-        <Link href={show(job.id)} className="group" data-test="job-card-link">
+        <Link href={show(job.slug)} className="group" data-test="job-card-link">
             <Card className="h-full transition-colors group-hover:border-primary/50">
                 <CardHeader>
                     <CardTitle className="line-clamp-2">{job.title}</CardTitle>

@@ -52,7 +52,7 @@ function DeleteJobDialog({ job }: { job: JobPostingListItem }) {
                 </DialogDescription>
 
                 <Form
-                    {...JobPostingController.destroy.form(job.id)}
+                    {...JobPostingController.destroy.form(job.slug)}
                     options={{
                         preserveScroll: true,
                     }}
@@ -164,7 +164,7 @@ export default function JobsIndex({ jobs }: { jobs: JobPostingListItem[] }) {
                                             >
                                                 <Link
                                                     href={JobPostingController.edit(
-                                                        job.id,
+                                                        job.slug,
                                                     )}
                                                 >
                                                     Edit
@@ -173,7 +173,7 @@ export default function JobsIndex({ jobs }: { jobs: JobPostingListItem[] }) {
 
                                             <Form
                                                 {...JobPostingController.publish.form(
-                                                    job.id,
+                                                    job.slug,
                                                 )}
                                                 options={{
                                                     preserveScroll: true,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\JobBrowseController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
@@ -39,6 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('jobs', [JobBrowseController::class, 'index'])->name('jobs.index');
         Route::get('jobs/{job}', [JobBrowseController::class, 'show'])->name('jobs.show');
+        Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
+
+        Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
     });
 });
 

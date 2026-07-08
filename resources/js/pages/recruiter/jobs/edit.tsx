@@ -18,7 +18,7 @@ export default function EditJob({ job }: { job: JobPosting }) {
                 />
 
                 <Form
-                    {...JobPostingController.update.form(job.id)}
+                    {...JobPostingController.update.form(job.slug)}
                     options={{
                         preserveScroll: true,
                     }}

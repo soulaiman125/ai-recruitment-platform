@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobPosting;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,8 +51,16 @@ class JobBrowseController extends Controller
 
         $job->load('company');
 
+        /** @var User $user */
+        $user = Auth::user();
+
+        $profile = $user->candidateProfile;
+
         return Inertia::render('candidate/jobs/show', [
             'job' => $job,
+            'hasApplied' => $profile !== null && $job->applications()
+                ->where('candidate_profile_id', $profile->id)
+                ->exists(),
         ]);
     }
 }

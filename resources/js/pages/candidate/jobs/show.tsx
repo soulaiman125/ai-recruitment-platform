@@ -1,9 +1,23 @@
-import { Head } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import { CalendarDays, Building2, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import ApplicationController from '@/actions/App/Http/Controllers/Candidate/ApplicationController';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { index } from '@/routes/candidate/jobs';
 import type { JobPostingWithCompany } from '@/types/job';
 
@@ -41,7 +55,80 @@ function Section({ title, body }: { title: string; body: string }) {
     );
 }
 
-export default function ShowJob({ job }: { job: JobPostingWithCompany }) {
+function ApplyDialog({ job }: { job: JobPostingWithCompany }) {
+    // The redirect lands back on this page, so close the dialog by hand.
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button data-test="apply-button">Apply</Button>
+            </DialogTrigger>
+
+            <DialogContent>
+                <DialogTitle>Apply to “{job.title}”</DialogTitle>
+
+                <DialogDescription>
+                    Add a cover letter if you would like to introduce yourself.
+                    It is optional.
+                </DialogDescription>
+
+                <Form
+                    {...ApplicationController.store.form(job.slug)}
+                    options={{
+                        preserveScroll: true,
+                    }}
+                    onSuccess={() => setOpen(false)}
+                >
+                    {({ processing, errors }) => (
+                        <div className="flex flex-col gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="cover_letter">
+                                    Cover letter
+                                </Label>
+
+                                <Textarea
+                                    id="cover_letter"
+                                    name="cover_letter"
+                                    rows={6}
+                                    maxLength={5000}
+                                    placeholder="Tell the recruiter why you are a good fit"
+                                    data-test="cover-letter-input"
+                                />
+
+                                <InputError message={errors.cover_letter} />
+                            </div>
+
+                            <DialogFooter className="gap-2">
+                                <DialogClose asChild>
+                                    <Button variant="secondary" type="button">
+                                        Cancel
+                                    </Button>
+                                </DialogClose>
+
+                                <Button disabled={processing} asChild>
+                                    <button
+                                        type="submit"
+                                        data-test="confirm-apply-button"
+                                    >
+                                        Submit application
+                                    </button>
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+type ShowJobProps = {
+    job: JobPostingWithCompany;
+    hasApplied: boolean;
+};
+
+export default function ShowJob({ job, hasApplied }: ShowJobProps) {
     const salary = formatSalaryRange(job.salary_min, job.salary_max);
 
     return (
@@ -52,10 +139,13 @@ export default function ShowJob({ job }: { job: JobPostingWithCompany }) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title={job.title} description={job.company.name} />
 
-                    {/* TODO: wire up the application flow in the next task. */}
-                    <Button disabled data-test="apply-button">
-                        Apply
-                    </Button>
+                    {hasApplied ? (
+                        <Button disabled data-test="applied-button">
+                            Applied ✓
+                        </Button>
+                    ) : (
+                        <ApplyDialog job={job} />
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-3">
