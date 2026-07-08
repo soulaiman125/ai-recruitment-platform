@@ -1,3 +1,4 @@
+import type { Interview } from '@/types/interview';
 import type { ExperienceLevel, JobPostingWithCompany } from '@/types/job';
 import type { Resume } from '@/types/resume';
 
@@ -57,6 +58,7 @@ export type ApplicationCandidate = {
 export type ApplicationWithCandidate = Application & {
     candidate: ApplicationCandidate;
     resume: Resume | null;
+    interviews: Interview[];
 };
 
 export const APPLICATION_STATUSES: readonly ApplicationStatus[] = [

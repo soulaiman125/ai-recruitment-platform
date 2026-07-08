@@ -10,6 +10,10 @@ class Interview extends Model
 {
     use HasFactory;
 
+    public const TYPES = ['online', 'onsite', 'phone'];
+
+    public const STATUSES = ['scheduled', 'completed', 'cancelled', 'no_show'];
+
     protected $fillable = [
         'application_id',
         'scheduled_by',

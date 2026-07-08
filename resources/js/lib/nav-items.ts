@@ -1,6 +1,14 @@
-import { Briefcase, FileText, FileUp, LayoutGrid, Search } from 'lucide-react';
+import {
+    Briefcase,
+    CalendarDays,
+    FileText,
+    FileUp,
+    LayoutGrid,
+    Search,
+} from 'lucide-react';
 import { dashboard } from '@/routes';
 import { index as candidateApplications } from '@/routes/candidate/applications';
+import { index as candidateInterviews } from '@/routes/candidate/interviews';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
 import { index as candidateResumes } from '@/routes/candidate/resumes';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
@@ -28,6 +36,7 @@ export const navItemsByRole: Record<string, NavItem[]> = {
             href: candidateApplications(),
             icon: FileText,
         },
+        { title: 'Interviews', href: candidateInterviews(), icon: CalendarDays },
         { title: 'Resumes', href: candidateResumes(), icon: FileUp },
     ],
 };

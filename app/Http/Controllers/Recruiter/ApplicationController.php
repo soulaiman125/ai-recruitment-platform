@@ -27,7 +27,7 @@ class ApplicationController extends Controller
 
         $applications = $job->applications()
             // Eager load both levels so the table never queries per row.
-            ->with(['candidate.user', 'resume'])
+            ->with(['candidate.user', 'resume', 'interviews' => fn ($query) => $query->orderBy('scheduled_at')])
             ->latest('applied_at')
             ->get();
 

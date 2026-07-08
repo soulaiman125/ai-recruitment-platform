@@ -1,7 +1,16 @@
-import { Head, router } from '@inertiajs/react';
-import { FileDown, Github, Globe, Linkedin, MapPin } from 'lucide-react';
+import { Form, Head, router } from '@inertiajs/react';
+import {
+    FileDown,
+    Github,
+    Globe,
+    Linkedin,
+    MapPin,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
+import InterviewController from '@/actions/App/Http/Controllers/Recruiter/InterviewController';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +22,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -35,6 +45,11 @@ import {
     applicationStatusClasses,
     applicationStatusVariants,
 } from '@/lib/application-status';
+import {
+    interviewStatusClasses,
+    interviewStatusLabels,
+    interviewStatusVariants,
+} from '@/lib/interview-status';
 import { index } from '@/routes/recruiter/jobs';
 import {
     index as applications,
@@ -46,6 +61,8 @@ import type {
     ApplicationStatus,
     ApplicationWithCandidate,
 } from '@/types/application';
+import { INTERVIEW_STATUSES, INTERVIEW_TYPES } from '@/types/interview';
+import type { Interview, InterviewStatus } from '@/types/interview';
 import type { JobPosting } from '@/types/job';
 
 /** The AI scorer is not wired yet, so every application arrives unscored. */
@@ -125,6 +142,436 @@ function Section({ title, body }: { title: string; body: string }) {
             <p className="text-sm whitespace-pre-line text-muted-foreground">
                 {body}
             </p>
+        </section>
+    );
+}
+
+/** Interviews arrive as ISO strings, so render them in the viewer's locale. */
+function formatInterviewWhen(scheduledAt: string): string {
+    return new Date(scheduledAt).toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
+}
+
+/** `<input type="datetime-local">` wants a zoneless `YYYY-MM-DDTHH:mm` value. */
+function toDatetimeLocal(iso: string): string {
+    const date = new Date(iso);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+
+    return local.toISOString().slice(0, 16);
+}
+
+function InterviewStatusBadge({ status }: { status: InterviewStatus }) {
+    return (
+        <Badge
+            variant={interviewStatusVariants[status]}
+            className={interviewStatusClasses[status]}
+        >
+            {interviewStatusLabels[status]}
+        </Badge>
+    );
+}
+
+/**
+ * The schedule/outcome fields shared by the create and edit forms. Ids are
+ * prefixed because a schedule form and an edit form can both be open at once.
+ */
+function InterviewFields({
+    idPrefix,
+    interview,
+    errors,
+}: {
+    idPrefix: string;
+    interview?: Interview;
+    errors: Record<string, string>;
+}) {
+    return (
+        <>
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                    <Label htmlFor={`${idPrefix}-scheduled_at`}>
+                        Date &amp; time
+                    </Label>
+
+                    <Input
+                        id={`${idPrefix}-scheduled_at`}
+                        name="scheduled_at"
+                        type="datetime-local"
+                        defaultValue={
+                            interview
+                                ? toDatetimeLocal(interview.scheduled_at)
+                                : ''
+                        }
+                        required
+                        data-test="interview-datetime-input"
+                    />
+
+                    <InputError message={errors.scheduled_at} />
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor={`${idPrefix}-type`}>Type</Label>
+
+                    <Select
+                        name="type"
+                        defaultValue={interview?.type ?? 'online'}
+                    >
+                        <SelectTrigger
+                            id={`${idPrefix}-type`}
+                            data-test="interview-type-select"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                            {INTERVIEW_TYPES.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                    {type}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <InputError message={errors.type} />
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor={`${idPrefix}-duration_minutes`}>
+                        Duration (minutes)
+                    </Label>
+
+                    <Input
+                        id={`${idPrefix}-duration_minutes`}
+                        name="duration_minutes"
+                        type="number"
+                        min={15}
+                        max={480}
+                        defaultValue={interview?.duration_minutes ?? 30}
+                        required
+                    />
+
+                    <InputError message={errors.duration_minutes} />
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor={`${idPrefix}-location`}>Location</Label>
+
+                    <Input
+                        id={`${idPrefix}-location`}
+                        name="location"
+                        maxLength={255}
+                        defaultValue={interview?.location ?? ''}
+                        placeholder="Office, room, address…"
+                    />
+
+                    <InputError message={errors.location} />
+                </div>
+            </div>
+
+            <div className="grid gap-2">
+                <Label htmlFor={`${idPrefix}-meeting_link`}>Meeting link</Label>
+
+                <Input
+                    id={`${idPrefix}-meeting_link`}
+                    name="meeting_link"
+                    type="url"
+                    defaultValue={interview?.meeting_link ?? ''}
+                    placeholder="https://…"
+                />
+
+                <InputError message={errors.meeting_link} />
+            </div>
+
+            <div className="grid gap-2">
+                <Label htmlFor={`${idPrefix}-notes`}>Notes</Label>
+
+                <Textarea
+                    id={`${idPrefix}-notes`}
+                    name="notes"
+                    rows={3}
+                    maxLength={2000}
+                    defaultValue={interview?.notes ?? ''}
+                    placeholder="Agenda, who is attending…"
+                />
+
+                <InputError message={errors.notes} />
+            </div>
+        </>
+    );
+}
+
+/** Immediately removes one interview; the redirect lands back on this page. */
+function DeleteInterviewForm({
+    job,
+    application,
+    interview,
+}: {
+    job: JobPosting;
+    application: ApplicationWithCandidate;
+    interview: Interview;
+}) {
+    return (
+        <Form
+            {...InterviewController.destroy.form([
+                job.slug,
+                application.id,
+                interview.id,
+            ])}
+            options={{ preserveScroll: true }}
+        >
+            {({ processing }) => (
+                <Button variant="ghost" size="sm" disabled={processing} asChild>
+                    <button
+                        type="submit"
+                        aria-label="Delete interview"
+                        data-test="delete-interview-button"
+                    >
+                        <Trash2 className="size-4" />
+                    </button>
+                </Button>
+            )}
+        </Form>
+    );
+}
+
+/**
+ * One scheduled interview: its when/type/status at a glance, plus an inline
+ * editor to move its date, set an outcome, and record feedback.
+ */
+function InterviewItem({
+    job,
+    application,
+    interview,
+}: {
+    job: JobPosting;
+    application: ApplicationWithCandidate;
+    interview: Interview;
+}) {
+    const [editing, setEditing] = useState(false);
+
+    return (
+        <div className="rounded-lg border border-sidebar-border/70 p-3 dark:border-sidebar-border">
+            <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium">
+                        {formatInterviewWhen(interview.scheduled_at)}
+                    </span>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant="outline">{interview.type}</Badge>
+
+                        <span className="text-xs text-muted-foreground">
+                            {interview.duration_minutes} min
+                        </span>
+
+                        <InterviewStatusBadge status={interview.status} />
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditing((value) => !value)}
+                        data-test="edit-interview-button"
+                    >
+                        Edit
+                    </Button>
+
+                    <DeleteInterviewForm
+                        job={job}
+                        application={application}
+                        interview={interview}
+                    />
+                </div>
+            </div>
+
+            {editing && (
+                <Form
+                    {...InterviewController.update.form([
+                        job.slug,
+                        application.id,
+                        interview.id,
+                    ])}
+                    options={{ preserveScroll: true }}
+                    onSuccess={() => setEditing(false)}
+                    className="mt-3 flex flex-col gap-4 border-t border-sidebar-border/70 pt-3 dark:border-sidebar-border"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <InterviewFields
+                                idPrefix={`edit-${interview.id}`}
+                                interview={interview}
+                                errors={errors}
+                            />
+
+                            <div className="grid gap-2 sm:max-w-[calc(50%-0.5rem)]">
+                                <Label htmlFor={`edit-${interview.id}-status`}>
+                                    Status
+                                </Label>
+
+                                <Select
+                                    name="status"
+                                    defaultValue={interview.status}
+                                >
+                                    <SelectTrigger
+                                        id={`edit-${interview.id}-status`}
+                                        data-test="interview-status-select"
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {INTERVIEW_STATUSES.map((status) => (
+                                            <SelectItem
+                                                key={status}
+                                                value={status}
+                                            >
+                                                {interviewStatusLabels[status]}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                <InputError message={errors.status} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label
+                                    htmlFor={`edit-${interview.id}-feedback`}
+                                >
+                                    Feedback
+                                </Label>
+
+                                <Textarea
+                                    id={`edit-${interview.id}-feedback`}
+                                    name="feedback"
+                                    rows={3}
+                                    maxLength={2000}
+                                    defaultValue={interview.feedback ?? ''}
+                                    placeholder="How did the interview go?"
+                                />
+
+                                <InputError message={errors.feedback} />
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="ghost"
+                                    type="button"
+                                    onClick={() => setEditing(false)}
+                                >
+                                    Cancel
+                                </Button>
+
+                                <Button disabled={processing} asChild>
+                                    <button
+                                        type="submit"
+                                        data-test="save-interview-button"
+                                    >
+                                        Save interview
+                                    </button>
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </Form>
+            )}
+        </div>
+    );
+}
+
+/** Collapsed to a button until the recruiter wants to schedule a new one. */
+function ScheduleInterviewForm({
+    job,
+    application,
+}: {
+    job: JobPosting;
+    application: ApplicationWithCandidate;
+}) {
+    const [open, setOpen] = useState(false);
+
+    if (!open) {
+        return (
+            <Button
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onClick={() => setOpen(true)}
+                data-test="new-interview-button"
+            >
+                Schedule interview
+            </Button>
+        );
+    }
+
+    return (
+        <Form
+            {...InterviewController.store.form([job.slug, application.id])}
+            options={{ preserveScroll: true }}
+            resetOnSuccess
+            onSuccess={() => setOpen(false)}
+            className="flex flex-col gap-4 rounded-lg border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+        >
+            {({ processing, errors }) => (
+                <>
+                    <InterviewFields idPrefix="new" errors={errors} />
+
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            onClick={() => setOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button disabled={processing} asChild>
+                            <button
+                                type="submit"
+                                data-test="schedule-interview-button"
+                            >
+                                Schedule
+                            </button>
+                        </Button>
+                    </div>
+                </>
+            )}
+        </Form>
+    );
+}
+
+/** Existing interviews for one application, plus the form to add another. */
+function InterviewsSection({
+    job,
+    application,
+}: {
+    job: JobPosting;
+    application: ApplicationWithCandidate;
+}) {
+    return (
+        <section className="flex flex-col gap-3">
+            <h2 className="font-medium">Interviews</h2>
+
+            {application.interviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                    No interviews scheduled yet.
+                </p>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {application.interviews.map((interview) => (
+                        <InterviewItem
+                            key={interview.id}
+                            job={job}
+                            application={application}
+                            interview={interview}
+                        />
+                    ))}
+                </div>
+            )}
+
+            <ScheduleInterviewForm job={job} application={application} />
         </section>
     );
 }
@@ -280,6 +727,12 @@ function ApplicantDialog({
                             'This candidate did not send a cover letter.'
                         }
                     />
+
+                    <Separator />
+
+                    <InterviewsSection job={job} application={application} />
+
+                    <Separator />
 
                     <div className="grid gap-2">
                         <Label htmlFor="recruiter_notes">Private notes</Label>

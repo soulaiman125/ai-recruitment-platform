@@ -3,12 +3,14 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
+use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Candidate\JobBrowseController;
 use App\Http\Controllers\Candidate\ResumeController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Recruiter\ApplicationController as RecruiterApplicationController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
+use App\Http\Controllers\Recruiter\InterviewController as RecruiterInterviewController;
 use App\Http\Controllers\Recruiter\JobPostingController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('jobs/{job}/applications/{application}/resume', [RecruiterApplicationController::class, 'resume'])->name('jobs.applications.resume');
         Route::patch('jobs/{job}/applications/{application}', [RecruiterApplicationController::class, 'updateStatus'])->name('jobs.applications.updateStatus');
 
+        Route::post('jobs/{job}/applications/{application}/interviews', [RecruiterInterviewController::class, 'store'])->name('jobs.applications.interviews.store');
+        Route::patch('jobs/{job}/applications/{application}/interviews/{interview}', [RecruiterInterviewController::class, 'update'])->name('jobs.applications.interviews.update');
+        Route::delete('jobs/{job}/applications/{application}/interviews/{interview}', [RecruiterInterviewController::class, 'destroy'])->name('jobs.applications.interviews.destroy');
+
         Route::resource('jobs', JobPostingController::class)->except(['show']);
     });
 
@@ -50,6 +56,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
 
         Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
+
+        Route::get('interviews', [CandidateInterviewController::class, 'index'])->name('interviews.index');
 
         Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
         Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
