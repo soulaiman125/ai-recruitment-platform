@@ -53,11 +53,11 @@ class ApplicationController extends Controller
             return back();
         }
 
+        // `resume_id` is absent when the candidate has no resume to attach, and
+        // the request scopes it to their own resumes when they do.
         $profile->applications()->create([
             ...$request->validated(),
             'job_posting_id' => $job->id,
-            // Resumes are not implemented yet, so applications carry none.
-            'resume_id' => null,
             'status' => 'pending',
             'applied_at' => now(),
         ]);

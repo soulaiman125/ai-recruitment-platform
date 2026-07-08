@@ -61,6 +61,13 @@ class JobBrowseController extends Controller
             'hasApplied' => $profile !== null && $job->applications()
                 ->where('candidate_profile_id', $profile->id)
                 ->exists(),
+            // The apply dialog preselects the first one, so the default resume
+            // has to sort ahead of the rest.
+            'resumes' => $profile === null ? [] : $profile->resumes()
+                ->orderByDesc('is_default')
+                ->latest()
+                ->latest('id')
+                ->get(),
         ]);
     }
 }

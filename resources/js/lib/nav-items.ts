@@ -1,7 +1,8 @@
-import { Briefcase, FileText, LayoutGrid, Search } from 'lucide-react';
+import { Briefcase, FileText, FileUp, LayoutGrid, Search } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { index as candidateApplications } from '@/routes/candidate/applications';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
+import { index as candidateResumes } from '@/routes/candidate/resumes';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
 import type { NavItem } from '@/types';
 
@@ -27,6 +28,7 @@ export const navItemsByRole: Record<string, NavItem[]> = {
             href: candidateApplications(),
             icon: FileText,
         },
+        { title: 'Resumes', href: candidateResumes(), icon: FileUp },
     ],
 };
 

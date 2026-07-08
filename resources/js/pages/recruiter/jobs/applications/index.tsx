@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Github, Globe, Linkedin, MapPin } from 'lucide-react';
+import { FileDown, Github, Globe, Linkedin, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ import {
 import { index } from '@/routes/recruiter/jobs';
 import {
     index as applications,
+    resume as resumeDownload,
     updateStatus,
 } from '@/routes/recruiter/jobs/applications';
 import { APPLICATION_STATUSES } from '@/types/application';
@@ -54,6 +55,33 @@ function MatchScore({ score }: { score: number | null }) {
     }
 
     return <Badge variant="outline">Match {score}%</Badge>;
+}
+
+/**
+ * The route authorizes the job, so the file is only ever reachable through an
+ * application on one of this recruiter's own postings.
+ */
+function ResumeLink({
+    job,
+    application,
+}: {
+    job: JobPosting;
+    application: ApplicationWithCandidate;
+}) {
+    if (application.resume === null) {
+        return <span className="text-muted-foreground">—</span>;
+    }
+
+    return (
+        <a
+            href={resumeDownload.url([job.slug, application.id])}
+            className="flex items-center gap-1.5 text-sm hover:underline"
+            data-test="download-applicant-resume-link"
+        >
+            <FileDown className="size-3.5 shrink-0" />
+            Download résumé
+        </a>
+    );
 }
 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
@@ -186,10 +214,18 @@ function ApplicantDialog({
                             <StatusBadge status={application.status} />
                         </div>
 
-                        {(candidate.linkedin ||
+                        {(application.resume !== null ||
+                            candidate.linkedin ||
                             candidate.github ||
                             candidate.portfolio) && (
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                {application.resume !== null && (
+                                    <ResumeLink
+                                        job={job}
+                                        application={application}
+                                    />
+                                )}
+
                                 {candidate.linkedin && (
                                     <ProfileLink
                                         href={candidate.linkedin}
@@ -357,6 +393,7 @@ export default function ApplicationsIndex({
                                     <TableHead>Email</TableHead>
                                     <TableHead>Experience</TableHead>
                                     <TableHead>Match</TableHead>
+                                    <TableHead>Résumé</TableHead>
                                     <TableHead>Applied</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="pr-4 text-right">
@@ -384,6 +421,13 @@ export default function ApplicationsIndex({
                                         <TableCell>
                                             <MatchScore
                                                 score={application.match_score}
+                                            />
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <ResumeLink
+                                                job={job}
+                                                application={application}
                                             />
                                         </TableCell>
 

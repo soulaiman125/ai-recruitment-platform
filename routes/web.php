@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\JobBrowseController;
+use App\Http\Controllers\Candidate\ResumeController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Recruiter\ApplicationController as RecruiterApplicationController;
@@ -34,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('jobs/{job}/publish', [JobPostingController::class, 'publish'])->name('jobs.publish');
 
         Route::get('jobs/{job}/applications', [RecruiterApplicationController::class, 'index'])->name('jobs.applications.index');
+        Route::get('jobs/{job}/applications/{application}/resume', [RecruiterApplicationController::class, 'resume'])->name('jobs.applications.resume');
         Route::patch('jobs/{job}/applications/{application}', [RecruiterApplicationController::class, 'updateStatus'])->name('jobs.applications.updateStatus');
 
         Route::resource('jobs', JobPostingController::class)->except(['show']);
@@ -48,6 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
 
         Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
+
+        Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
+        Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
+        Route::patch('resumes/{resume}/default', [ResumeController::class, 'setDefault'])->name('resumes.setDefault');
+        Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
     });
 });
 

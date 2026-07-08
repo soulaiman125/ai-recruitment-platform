@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import { CalendarDays, Building2, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import ApplicationController from '@/actions/App/Http/Controllers/Candidate/ApplicationController';
@@ -16,10 +16,19 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { index } from '@/routes/candidate/jobs';
+import { index as resumesIndex } from '@/routes/candidate/resumes';
 import type { JobPostingWithCompany } from '@/types/job';
+import type { Resume } from '@/types/resume';
 
 /** Salaries arrive as `decimal:2` strings, so format them for display. */
 function formatSalaryRange(min: string | null, max: string | null) {
@@ -55,9 +64,20 @@ function Section({ title, body }: { title: string; body: string }) {
     );
 }
 
-function ApplyDialog({ job }: { job: JobPostingWithCompany }) {
+function ApplyDialog({
+    job,
+    resumes,
+}: {
+    job: JobPostingWithCompany;
+    resumes: Resume[];
+}) {
     // The redirect lands back on this page, so close the dialog by hand.
     const [open, setOpen] = useState(false);
+
+    // The server sorts the default resume first, so it is the one preselected.
+    const [resumeId, setResumeId] = useState(
+        resumes.length === 0 ? '' : String(resumes[0].id),
+    );
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -69,8 +89,8 @@ function ApplyDialog({ job }: { job: JobPostingWithCompany }) {
                 <DialogTitle>Apply to “{job.title}”</DialogTitle>
 
                 <DialogDescription>
-                    Add a cover letter if you would like to introduce yourself.
-                    It is optional.
+                    Attach a resume and add a cover letter if you would like to
+                    introduce yourself. Both are optional.
                 </DialogDescription>
 
                 <Form
@@ -82,6 +102,65 @@ function ApplyDialog({ job }: { job: JobPostingWithCompany }) {
                 >
                     {({ processing, errors }) => (
                         <div className="flex flex-col gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="resume_id">Resume</Label>
+
+                                {resumes.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        You have no resume yet.{' '}
+                                        <Link
+                                            href={resumesIndex()}
+                                            className="underline"
+                                            data-test="upload-resume-link"
+                                        >
+                                            Upload one
+                                        </Link>{' '}
+                                        to attach it to your applications.
+                                    </p>
+                                ) : (
+                                    <>
+                                        {/* Select is not a native input, so the
+                                            value rides along in a hidden field. */}
+                                        <input
+                                            type="hidden"
+                                            name="resume_id"
+                                            value={resumeId}
+                                        />
+
+                                        <Select
+                                            value={resumeId}
+                                            onValueChange={setResumeId}
+                                        >
+                                            <SelectTrigger
+                                                id="resume_id"
+                                                className="w-full"
+                                                data-test="resume-select"
+                                            >
+                                                <SelectValue />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {resumes.map((resume) => (
+                                                    <SelectItem
+                                                        key={resume.id}
+                                                        value={String(
+                                                            resume.id,
+                                                        )}
+                                                    >
+                                                        {resume.title ??
+                                                            resume.original_name}
+                                                        {resume.is_default &&
+                                                            ' (default)'}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </>
+                                )}
+
+                                <InputError message={errors.resume_id} />
+                            </div>
+
                             <div className="grid gap-2">
                                 <Label htmlFor="cover_letter">
                                     Cover letter
@@ -126,9 +205,10 @@ function ApplyDialog({ job }: { job: JobPostingWithCompany }) {
 type ShowJobProps = {
     job: JobPostingWithCompany;
     hasApplied: boolean;
+    resumes: Resume[];
 };
 
-export default function ShowJob({ job, hasApplied }: ShowJobProps) {
+export default function ShowJob({ job, hasApplied, resumes }: ShowJobProps) {
     const salary = formatSalaryRange(job.salary_min, job.salary_max);
 
     return (
@@ -144,7 +224,7 @@ export default function ShowJob({ job, hasApplied }: ShowJobProps) {
                             Applied ✓
                         </Button>
                     ) : (
-                        <ApplyDialog job={job} />
+                        <ApplyDialog job={job} resumes={resumes} />
                     )}
                 </div>
 

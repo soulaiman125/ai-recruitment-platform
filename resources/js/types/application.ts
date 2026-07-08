@@ -1,4 +1,5 @@
 import type { ExperienceLevel, JobPostingWithCompany } from '@/types/job';
+import type { Resume } from '@/types/resume';
 
 export type ApplicationStatus =
     'pending' | 'reviewed' | 'interview' | 'accepted' | 'rejected';
@@ -50,9 +51,12 @@ export type ApplicationCandidate = {
 /**
  * An application rendered for recruiters, with the candidate profile and the
  * user account behind it eager-loaded. Eloquent snake-cases relation keys.
+ * `resume` is null whenever the candidate attached none, or deleted the one
+ * they had attached.
  */
 export type ApplicationWithCandidate = Application & {
     candidate: ApplicationCandidate;
+    resume: Resume | null;
 };
 
 export const APPLICATION_STATUSES: readonly ApplicationStatus[] = [

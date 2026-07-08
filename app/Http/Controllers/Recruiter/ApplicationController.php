@@ -6,10 +6,13 @@ use App\Concerns\ScopesRecruiterJobs;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\JobPosting;
+use App\Models\Resume;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
@@ -24,7 +27,7 @@ class ApplicationController extends Controller
 
         $applications = $job->applications()
             // Eager load both levels so the table never queries per row.
-            ->with('candidate.user')
+            ->with(['candidate.user', 'resume'])
             ->latest('applied_at')
             ->get();
 
@@ -57,5 +60,28 @@ class ApplicationController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application updated.')]);
 
         return back();
+    }
+
+    /**
+     * Download the resume attached to one received application.
+     */
+    public function resume(JobPosting $job, Application $application): StreamedResponse
+    {
+        $this->authorizeJob($job);
+
+        // Recruiters only ever reach a resume through an application on a job
+        // they own, so a resume is never exposed across companies.
+        abort_unless($application->job_posting_id === $job->id, 404);
+
+        /** @var Resume|null $resume */
+        $resume = $application->resume;
+
+        abort_if($resume === null, 404);
+
+        $disk = Storage::disk('public');
+
+        abort_unless($disk->exists($resume->file_path), 404);
+
+        return $disk->download($resume->file_path, $resume->original_name);
     }
 }
