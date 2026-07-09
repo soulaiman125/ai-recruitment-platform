@@ -3,9 +3,9 @@ import { Briefcase, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import {
-    fadeUp,
-    staggerContainer,
-    viewportOnce,
+    hiddenState,
+    shownState,
+    useReveal,
 } from '@/components/landing/animations';
 
 type Track = {
@@ -60,17 +60,19 @@ const tracks: Track[] = [
 ];
 
 export function HowItWorksSection() {
+    const { ref, show, transition } = useReveal<HTMLElement>();
+
     return (
         <section
+            ref={ref}
             id="how-it-works"
-            className="scroll-mt-20 border-t border-border bg-muted/30 py-24"
+            className="scroll-mt-20 border-t border-border bg-muted/30 py-20"
         >
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
+                    initial={hiddenState}
+                    animate={show ? shownState : hiddenState}
+                    transition={transition(0)}
                     className="mx-auto max-w-2xl text-center"
                 >
                     <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
@@ -82,33 +84,33 @@ export function HowItWorksSection() {
                     </p>
                 </motion.div>
 
-                <div className="mt-16 grid gap-6 lg:grid-cols-2">
-                    {tracks.map((track) => (
+                <div className="mt-14 grid gap-6 lg:grid-cols-2">
+                    {tracks.map((track, trackIndex) => (
                         <motion.div
                             key={track.audience}
-                            variants={staggerContainer}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={viewportOnce}
+                            initial={hiddenState}
+                            animate={show ? shownState : hiddenState}
+                            transition={transition(1 + trackIndex)}
                             className="rounded-2xl border border-border bg-card p-8"
                         >
-                            <motion.div
-                                variants={fadeUp}
-                                className="mb-8 flex items-center gap-3"
-                            >
+                            <div className="mb-8 flex items-center gap-3">
                                 <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white">
                                     <track.icon className="size-5" />
                                 </div>
                                 <span className="text-lg font-semibold">
                                     {track.audience}
                                 </span>
-                            </motion.div>
+                            </div>
 
                             <ol className="space-y-6">
                                 {track.steps.map((step, index) => (
                                     <motion.li
                                         key={step.title}
-                                        variants={fadeUp}
+                                        initial={hiddenState}
+                                        animate={show ? shownState : hiddenState}
+                                        transition={transition(
+                                            2 + trackIndex + index,
+                                        )}
                                         className="flex gap-4"
                                     >
                                         <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-background text-sm font-semibold text-muted-foreground">

@@ -2,19 +2,24 @@ import { Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
-import { fadeUp, viewportOnce } from '@/components/landing/animations';
+import {
+    hiddenState,
+    shownState,
+    useReveal,
+} from '@/components/landing/animations';
 import { Button } from '@/components/ui/button';
 import { register } from '@/routes';
 
 export function CtaSection() {
+    const { ref, show, transition } = useReveal<HTMLElement>();
+
     return (
-        <section className="py-20">
+        <section ref={ref} className="py-20">
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
+                    initial={hiddenState}
+                    animate={show ? shownState : hiddenState}
+                    transition={transition(0)}
                     className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-20 text-center shadow-2xl shadow-violet-500/20 sm:px-16"
                 >
                     {/* Slowly drifting glow to give the panel a sense of life. */}

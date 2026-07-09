@@ -18,6 +18,22 @@ const HOLD = 1.45;
 const EXIT = 0.3;
 
 /**
+ * `?splash=1` replays the intro on demand — for a live demo, where the session
+ * flag would otherwise have been set by an earlier load in the same tab. It
+ * overrides both the flag and the reduced-motion check, because asking for the
+ * splash explicitly is a request to see it.
+ */
+function isForced(): boolean {
+    try {
+        return (
+            new URLSearchParams(window.location.search).get('splash') === '1'
+        );
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Decided once, synchronously, during the first render — so a returning visitor
  * renders `null` on frame one with no flash and no timer. Purely a read: the
  * sessionStorage write happens in an effect, since `strictMode` double-invokes
@@ -26,6 +42,10 @@ const EXIT = 0.3;
 function shouldShowSplash(): boolean {
     if (typeof window === 'undefined') {
         return false;
+    }
+
+    if (isForced()) {
+        return true;
     }
 
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {

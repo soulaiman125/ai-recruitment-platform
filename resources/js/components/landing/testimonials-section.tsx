@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 
 import {
-    fadeUp,
-    staggerContainer,
-    viewportOnce,
+    hiddenState,
+    shownState,
+    useReveal,
 } from '@/components/landing/animations';
 
 type Testimonial = {
@@ -37,14 +37,15 @@ const testimonials: Testimonial[] = [
 ];
 
 export function TestimonialsSection() {
+    const { ref, show, transition } = useReveal<HTMLElement>();
+
     return (
-        <section className="py-20">
+        <section ref={ref} className="py-20">
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
+                    initial={hiddenState}
+                    animate={show ? shownState : hiddenState}
+                    transition={transition(0)}
                     className="mx-auto max-w-2xl text-center"
                 >
                     <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
@@ -56,17 +57,13 @@ export function TestimonialsSection() {
                     </p>
                 </motion.div>
 
-                <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
-                    className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3"
-                >
-                    {testimonials.map((testimonial) => (
+                <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
+                    {testimonials.map((testimonial, index) => (
                         <motion.figure
                             key={testimonial.name}
-                            variants={fadeUp}
+                            initial={hiddenState}
+                            animate={show ? shownState : hiddenState}
+                            transition={transition(index + 1)}
                             className="flex flex-col rounded-2xl border border-border bg-card p-6"
                         >
                             <Quote className="size-6 text-violet-500/60" />
@@ -88,7 +85,7 @@ export function TestimonialsSection() {
                             </figcaption>
                         </motion.figure>
                     ))}
-                </motion.div>
+                </div>
             </div>
         </section>
     );

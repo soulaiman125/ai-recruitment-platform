@@ -3,9 +3,9 @@ import { BrainCircuit, Building2, CalendarCheck, Target } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import {
-    fadeUp,
-    staggerContainer,
-    viewportOnce,
+    hiddenState,
+    shownState,
+    useReveal,
 } from '@/components/landing/animations';
 
 type Feature = {
@@ -42,14 +42,15 @@ const features: Feature[] = [
 ];
 
 export function FeaturesSection() {
+    const { ref, show, transition } = useReveal<HTMLElement>();
+
     return (
-        <section id="features" className="scroll-mt-20 py-20">
+        <section ref={ref} id="features" className="scroll-mt-20 py-20">
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
+                    initial={hiddenState}
+                    animate={show ? shownState : hiddenState}
+                    transition={transition(0)}
                     className="mx-auto max-w-2xl text-center"
                 >
                     <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
@@ -61,17 +62,13 @@ export function FeaturesSection() {
                     </p>
                 </motion.div>
 
-                <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportOnce}
-                    className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
-                >
-                    {features.map((feature) => (
+                <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {features.map((feature, index) => (
                         <motion.div
                             key={feature.title}
-                            variants={fadeUp}
+                            initial={hiddenState}
+                            animate={show ? shownState : hiddenState}
+                            transition={transition(index + 1)}
                             className="group rounded-2xl border border-border bg-card p-6 transition-colors hover:border-foreground/20"
                         >
                             <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 text-violet-500 ring-1 ring-violet-500/20 ring-inset">
@@ -85,7 +82,7 @@ export function FeaturesSection() {
                             </p>
                         </motion.div>
                     ))}
-                </motion.div>
+                </div>
             </div>
         </section>
     );

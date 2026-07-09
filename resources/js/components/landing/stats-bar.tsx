@@ -1,10 +1,9 @@
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
+import { motion } from 'framer-motion';
 
 import {
-    fadeUp,
-    staggerContainer,
-    viewportOnce,
+    hiddenState,
+    shownState,
+    useReveal,
 } from '@/components/landing/animations';
 import { useCountUp } from '@/hooks/use-count-up';
 
@@ -23,8 +22,8 @@ const stats: Stat[] = [
 ];
 
 /**
- * Renders the counting number. Mounted only once the bar scrolls into view so
- * the count-up plays on reveal rather than on page load. `useCountUp` already
+ * Renders the counting number. Mounted only once the bar is revealed so the
+ * count-up plays on reveal rather than on page load. `useCountUp` already
  * honors prefers-reduced-motion by settling on the target instantly.
  */
 function CountUpNumber({ value }: { value: number }) {
@@ -34,33 +33,23 @@ function CountUpNumber({ value }: { value: number }) {
 }
 
 export function StatsBar() {
-    const ref = useRef<HTMLDivElement>(null);
-    const inView = useInView(ref, { once: true, amount: 0.4 });
+    const { ref, show, transition } = useReveal<HTMLElement>();
 
     return (
-        <section className="px-6 pb-8">
-            <motion.div
-                ref={ref}
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={viewportOnce}
-                className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 lg:grid-cols-4"
-            >
-                {stats.map((stat) => (
+        <section ref={ref} className="px-6 pb-8">
+            <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border/60 lg:grid-cols-4">
+                {stats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
-                        variants={fadeUp}
+                        initial={hiddenState}
+                        animate={show ? shownState : hiddenState}
+                        transition={transition(index)}
                         className="flex flex-col items-center bg-card px-6 py-8 text-center"
                     >
                         <p className="text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
                             <span className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
                                 {stat.prefix}
-                                {inView ? (
-                                    <CountUpNumber value={stat.value} />
-                                ) : (
-                                    0
-                                )}
+                                {show ? <CountUpNumber value={stat.value} /> : 0}
                                 {stat.suffix}
                             </span>
                         </p>
@@ -69,7 +58,7 @@ export function StatsBar() {
                         </p>
                     </motion.div>
                 ))}
-            </motion.div>
+            </div>
         </section>
     );
 }
