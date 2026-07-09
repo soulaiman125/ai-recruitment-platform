@@ -9,6 +9,9 @@ import {
     Users,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
+import { index as adminCompanies } from '@/routes/admin/companies';
+import { index as adminJobs } from '@/routes/admin/jobs';
+import { index as adminUsers } from '@/routes/admin/users';
 import { index as candidateApplications } from '@/routes/candidate/applications';
 import { index as candidateInterviews } from '@/routes/candidate/interviews';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
@@ -23,7 +26,12 @@ import type { NavItem } from '@/types';
  * ملي نبنيو feature جديدة، نزيدو غير سطر هنا.
  */
 export const navItemsByRole: Record<string, NavItem[]> = {
-    admin: [{ title: 'Dashboard', href: dashboard(), icon: LayoutGrid }],
+    admin: [
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'Users', href: adminUsers(), icon: Users },
+        { title: 'Companies', href: adminCompanies(), icon: Building2 },
+        { title: 'Jobs', href: adminJobs(), icon: Briefcase },
+    ],
 
     company: [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },

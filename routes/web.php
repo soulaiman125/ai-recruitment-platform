@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Admin\JobPostingController as AdminJobPostingController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
@@ -25,6 +28,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
+
+        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('companies', [AdminCompanyController::class, 'index'])->name('companies.index');
+        Route::patch('companies/{company}/toggle', [AdminCompanyController::class, 'toggleActive'])->name('companies.toggleActive');
+
+        Route::get('jobs', [AdminJobPostingController::class, 'index'])->name('jobs.index');
+        Route::delete('jobs/{job}', [AdminJobPostingController::class, 'destroy'])->name('jobs.destroy');
     });
 
     // Company
