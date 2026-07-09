@@ -30,6 +30,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $updated_at
  * @property-read RecruiterProfile|null $recruiterProfile
  * @property-read CandidateProfile|null $candidateProfile
+ * @property-read Company|null $ownedCompany
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -70,5 +71,15 @@ class User extends Authenticatable implements PasskeyUser
     public function candidateProfile(): HasOne
     {
         return $this->hasOne(CandidateProfile::class);
+    }
+
+    /**
+     * Get the company owned by the user.
+     *
+     * @return HasOne<Company, $this>
+     */
+    public function ownedCompany(): HasOne
+    {
+        return $this->hasOne(Company::class, 'user_id');
     }
 }

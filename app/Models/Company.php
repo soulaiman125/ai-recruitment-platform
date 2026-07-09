@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
@@ -11,6 +12,7 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'name',
         'slug',
         'logo',
@@ -28,6 +30,14 @@ class Company extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * صاحب الشركة (الـ company user).
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function recruiters(): HasMany
