@@ -1,8 +1,17 @@
 import { Form, Head } from '@inertiajs/react';
-import { CircleCheck, Lightbulb, Sparkles, TriangleAlert } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+    CircleCheck,
+    FileText,
+    Lightbulb,
+    Sparkles,
+    TriangleAlert,
+} from 'lucide-react';
 import ResumeController from '@/actions/App/Http/Controllers/Candidate/ResumeController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Table,
     TableBody,
@@ -25,6 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useCountUp } from '@/hooks/use-count-up';
 import {
     analysisStatusClasses,
     analysisStatusVariants,
@@ -32,6 +43,7 @@ import {
     scoreTextClasses,
     scoreTone,
 } from '@/lib/analysis-status';
+import { fadeSlideUp, staggerContainer } from '@/lib/motion';
 import { index } from '@/routes/candidate/resumes';
 import { formatFileSize, isCompleted, resumeUrl } from '@/types/resume';
 import type {
@@ -166,9 +178,11 @@ function DeleteResumeDialog({ resume }: { resume: Resume }) {
 
 /** The AI's 0-100 verdict, as a donut that fills clockwise from the top. */
 function ScoreRing({ score }: { score: number }) {
+    const reduceMotion = useReducedMotion();
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
     const tone = scoreTone(score);
+    const counted = useCountUp(score);
 
     // A full circle is offset 0, an empty one is offset `circumference`.
     const offset =
@@ -186,7 +200,8 @@ function ScoreRing({ score }: { score: number }) {
                     className="stroke-muted"
                 />
 
-                <circle
+                {/* Fills from empty to `offset` on open; the count keeps pace. */}
+                <motion.circle
                     cx="60"
                     cy="60"
                     r={radius}
@@ -194,7 +209,11 @@ function ScoreRing({ score }: { score: number }) {
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray={circumference}
-                    strokeDashoffset={offset}
+                    initial={{
+                        strokeDashoffset: reduceMotion ? offset : circumference,
+                    }}
+                    animate={{ strokeDashoffset: offset }}
+                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                     className={scoreStrokeClasses[tone]}
                 />
             </svg>
@@ -203,7 +222,7 @@ function ScoreRing({ score }: { score: number }) {
                 <span
                     className={`text-4xl font-semibold tabular-nums ${scoreTextClasses[tone]}`}
                 >
-                    {score}
+                    {counted}
                 </span>
 
                 <span className="text-xs text-muted-foreground">
@@ -234,17 +253,26 @@ function FindingList({
         <section className="flex flex-col gap-2">
             <h2 className="font-medium">{title}</h2>
 
-            <ul className="flex flex-col gap-2">
+            <motion.ul
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col gap-2"
+            >
                 {items.map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm">
+                    <motion.li
+                        key={item}
+                        variants={fadeSlideUp}
+                        className="flex items-start gap-2 text-sm"
+                    >
                         <Icon
                             className={`mt-0.5 size-4 shrink-0 ${iconClassName}`}
                         />
 
                         <span className="text-muted-foreground">{item}</span>
-                    </li>
+                    </motion.li>
                 ))}
-            </ul>
+            </motion.ul>
         </section>
     );
 }
@@ -316,7 +344,14 @@ function AnalyzeButton({
                     asChild
                 >
                     <button type="submit" data-test="analyze-resume-button">
-                        {processing ? 'Analyzing…' : label}
+                        {processing ? (
+                            <>
+                                <Spinner />
+                                Analyzing…
+                            </>
+                        ) : (
+                            label
+                        )}
                     </button>
                 </Button>
             )}
@@ -493,7 +528,7 @@ export default function ResumesIndex({
         <>
             <Head title="Resumes" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Resumes"
                     description="Upload the resumes you attach to your applications"
@@ -502,14 +537,11 @@ export default function ResumesIndex({
                 <UploadForm />
 
                 {resumes.length === 0 ? (
-                    <div className="rounded-xl border border-sidebar-border/70 py-16 text-center dark:border-sidebar-border">
-                        <p className="font-medium">No resumes yet</p>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Upload a PDF above to attach it to the jobs you
-                            apply to.
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={FileText}
+                        title="No resumes yet"
+                        description="Upload a PDF above to attach it to the jobs you apply to."
+                    />
                 ) : (
                     <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
@@ -640,7 +672,7 @@ export default function ResumesIndex({
                         </Table>
                     </div>
                 )}
-            </div>
+            </PageTransition>
         </>
     );
 }

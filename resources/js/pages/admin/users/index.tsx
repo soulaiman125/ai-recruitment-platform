@@ -1,8 +1,10 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -145,7 +147,7 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
         <>
             <Head title="Users" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Users"
                     description="Every account on the platform"
@@ -189,80 +191,77 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                     </Select>
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="pl-4">Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Roles</TableHead>
-                                <TableHead>Joined</TableHead>
-                                <TableHead className="pr-4 text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {users.data.length === 0 && (
+                {users.data.length === 0 ? (
+                    <EmptyState
+                        icon={SearchX}
+                        title="No users match your filters"
+                        description="Try a different search term or role filter."
+                    />
+                ) : (
+                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={5}
-                                        className="py-10 text-center text-muted-foreground"
-                                    >
-                                        No users match your filters.
-                                    </TableCell>
+                                    <TableHead className="pl-4">Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Roles</TableHead>
+                                    <TableHead>Joined</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            )}
+                            </TableHeader>
 
-                            {users.data.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell className="pl-4 font-medium">
-                                        {user.name}
-                                    </TableCell>
+                            <TableBody>
+                                {users.data.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="pl-4 font-medium">
+                                            {user.name}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {user.email}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {user.email}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        <div className="flex flex-wrap gap-1">
-                                            {user.roles.length === 0 && (
-                                                <span className="text-muted-foreground">
-                                                    —
-                                                </span>
-                                            )}
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.roles.length === 0 && (
+                                                    <span className="text-muted-foreground">
+                                                        —
+                                                    </span>
+                                                )}
 
-                                            {user.roles.map((role) => (
-                                                <Badge
-                                                    key={role}
-                                                    variant="secondary"
-                                                >
-                                                    {role}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </TableCell>
+                                                {user.roles.map((role) => (
+                                                    <Badge
+                                                        key={role}
+                                                        variant="secondary"
+                                                    >
+                                                        {role}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {new Date(
-                                            user.created_at,
-                                        ).toLocaleDateString()}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {new Date(
+                                                user.created_at,
+                                            ).toLocaleDateString()}
+                                        </TableCell>
 
-                                    <TableCell className="pr-4 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <DeleteUserDialog user={user} />
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                        <TableCell className="pr-4 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <DeleteUserDialog user={user} />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 <Pagination paginator={users} noun="users" />
-            </div>
+            </PageTransition>
         </>
     );
 }

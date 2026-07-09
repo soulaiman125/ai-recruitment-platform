@@ -1,7 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { MapPin, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MapPin, Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -11,6 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { fadeSlideUp, staggerContainer } from '@/lib/motion';
 import { index, show } from '@/routes/candidate/jobs';
 import type { JobPostingWithCompany } from '@/types/job';
 
@@ -84,7 +88,7 @@ export default function JobsBrowse({ jobs, filters }: JobsBrowseProps) {
         <>
             <Head title="Browse Jobs" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Browse Jobs"
                     description="Find the openings that match your profile"
@@ -104,23 +108,34 @@ export default function JobsBrowse({ jobs, filters }: JobsBrowseProps) {
                 </div>
 
                 {jobs.length === 0 ? (
-                    <div className="rounded-xl border border-sidebar-border/70 py-16 text-center dark:border-sidebar-border">
-                        <p className="font-medium">No jobs found</p>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            {filters.search === ''
+                    <EmptyState
+                        icon={SearchX}
+                        title="No jobs found"
+                        description={
+                            filters.search === ''
                                 ? 'There are no published openings right now. Check back soon.'
-                                : `Nothing matches “${filters.search}”. Try a different title or location.`}
-                        </p>
-                    </div>
+                                : `Nothing matches “${filters.search}”. Try a different title or location.`
+                        }
+                    />
                 ) : (
-                    <div className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3"
+                    >
                         {jobs.map((job) => (
-                            <JobCard key={job.id} job={job} />
+                            <motion.div
+                                key={job.id}
+                                variants={fadeSlideUp}
+                                className="h-full"
+                            >
+                                <JobCard job={job} />
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
-            </div>
+            </PageTransition>
         </>
     );
 }

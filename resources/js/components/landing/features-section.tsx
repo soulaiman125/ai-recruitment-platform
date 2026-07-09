@@ -55,7 +55,7 @@ export function FeaturesSection() {
                     <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
                         Everything you need to hire well
                     </h2>
-                    <p className="mt-4 text-lg text-muted-foreground text-pretty">
+                    <p className="mt-4 text-lg text-pretty text-muted-foreground">
                         From the first resume to the final interview, AI works
                         alongside your team at every stage.
                     </p>
@@ -74,13 +74,13 @@ export function FeaturesSection() {
                             variants={fadeUp}
                             className="group rounded-2xl border border-border bg-card p-6 transition-colors hover:border-foreground/20"
                         >
-                            <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 text-violet-500 ring-1 ring-inset ring-violet-500/20">
+                            <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 text-violet-500 ring-1 ring-violet-500/20 ring-inset">
                                 <feature.icon className="size-5" />
                             </div>
                             <h3 className="mt-5 text-base font-semibold">
                                 {feature.title}
                             </h3>
-                            <p className="mt-2 text-sm text-muted-foreground text-pretty">
+                            <p className="mt-2 text-sm text-pretty text-muted-foreground">
                                 {feature.description}
                             </p>
                         </motion.div>

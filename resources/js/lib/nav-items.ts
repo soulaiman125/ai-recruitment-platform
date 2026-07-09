@@ -52,13 +52,19 @@ export const navItemsByRole: Record<string, NavItem[]> = {
             href: candidateApplications(),
             icon: FileText,
         },
-        { title: 'Interviews', href: candidateInterviews(), icon: CalendarDays },
+        {
+            title: 'Interviews',
+            href: candidateInterviews(),
+            icon: CalendarDays,
+        },
         { title: 'Resumes', href: candidateResumes(), icon: FileUp },
     ],
 };
 
 export function navItemsForRole(role?: string): NavItem[] {
-    return navItemsByRole[role ?? ''] ?? [
-        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
-    ];
+    return (
+        navItemsByRole[role ?? ''] ?? [
+            { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        ]
+    );
 }

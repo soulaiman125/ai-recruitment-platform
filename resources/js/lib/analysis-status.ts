@@ -18,13 +18,13 @@ export const analysisStatusClasses: Partial<Record<AnalysisStatus, string>> = {
 
 export type ScoreTone = 'strong' | 'fair' | 'weak';
 
-/** The same bands the prompt's scoring rubric describes to the model. */
+/** Display bands shared by the resume score ring and the match-score badge. */
 export function scoreTone(score: number): ScoreTone {
-    if (score >= 75) {
+    if (score >= 70) {
         return 'strong';
     }
 
-    return score >= 50 ? 'fair' : 'weak';
+    return score >= 40 ? 'fair' : 'weak';
 }
 
 export const scoreTextClasses: Record<ScoreTone, string> = {
@@ -37,4 +37,20 @@ export const scoreStrokeClasses: Record<ScoreTone, string> = {
     strong: 'stroke-emerald-600 dark:stroke-emerald-500',
     fair: 'stroke-amber-600 dark:stroke-amber-500',
     weak: 'stroke-red-600 dark:stroke-red-500',
+};
+
+/** Badge variant + class per band, so a match score reads at a glance. */
+export const scoreBadgeVariants: Record<
+    ScoreTone,
+    'default' | 'secondary' | 'destructive'
+> = {
+    strong: 'default',
+    fair: 'secondary',
+    weak: 'destructive',
+};
+
+export const scoreBadgeClasses: Record<ScoreTone, string> = {
+    strong: 'bg-emerald-600 text-white hover:bg-emerald-600/90',
+    fair: 'bg-amber-500/15 text-amber-700 hover:bg-amber-500/15 dark:text-amber-500',
+    weak: '',
 };

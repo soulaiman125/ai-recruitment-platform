@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { MapPin, Phone, Video } from 'lucide-react';
+import { CalendarClock, MapPin, Phone, Video } from 'lucide-react';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -81,21 +83,18 @@ export default function InterviewsIndex({
         <>
             <Head title="My Interviews" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Interviews"
                     description="The interviews recruiters have scheduled with you"
                 />
 
                 {interviews.length === 0 ? (
-                    <div className="rounded-xl border border-sidebar-border/70 py-16 text-center dark:border-sidebar-border">
-                        <p className="font-medium">No interviews yet</p>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            When a recruiter schedules an interview, it will
-                            show up here.
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={CalendarClock}
+                        title="No interviews yet"
+                        description="When a recruiter schedules an interview, it will show up here."
+                    />
                 ) : (
                     <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
@@ -185,7 +184,7 @@ export default function InterviewsIndex({
                         </Table>
                     </div>
                 )}
-            </div>
+            </PageTransition>
         </>
     );
 }

@@ -1,6 +1,18 @@
 import { Head } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import {
+    Briefcase,
+    Building2,
+    CalendarCheck,
+    FileText,
+    Sparkles,
+    Users,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Heading from '@/components/heading';
+import StatCard from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
+import { staggerContainer } from '@/lib/motion';
 import type {
     AdminLatestApplication,
     AdminLatestUser,
@@ -13,13 +25,13 @@ type DashboardProps = {
     latest_applications: AdminLatestApplication[];
 };
 
-const cards: { key: keyof AdminStats; label: string }[] = [
-    { key: 'users', label: 'Total Users' },
-    { key: 'companies', label: 'Companies' },
-    { key: 'published_jobs', label: 'Published Jobs' },
-    { key: 'applications', label: 'Applications' },
-    { key: 'analyses', label: 'Analyses Completed' },
-    { key: 'interviews', label: 'Interviews Scheduled' },
+const cards: { key: keyof AdminStats; label: string; icon: LucideIcon }[] = [
+    { key: 'users', label: 'Total Users', icon: Users },
+    { key: 'companies', label: 'Companies', icon: Building2 },
+    { key: 'published_jobs', label: 'Published Jobs', icon: Briefcase },
+    { key: 'applications', label: 'Applications', icon: FileText },
+    { key: 'analyses', label: 'Analyses Completed', icon: Sparkles },
+    { key: 'interviews', label: 'Interviews Scheduled', icon: CalendarCheck },
 ];
 
 export default function AdminDashboard({
@@ -36,21 +48,21 @@ export default function AdminDashboard({
                     description="Manage users, companies, and platform settings"
                 />
 
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+                <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid auto-rows-min gap-4 md:grid-cols-3"
+                >
                     {cards.map((card) => (
-                        <div
+                        <StatCard
                             key={card.key}
-                            className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border"
-                        >
-                            <p className="text-sm text-muted-foreground">
-                                {card.label}
-                            </p>
-                            <p className="mt-2 text-3xl font-bold">
-                                {stats[card.key]}
-                            </p>
-                        </div>
+                            icon={card.icon}
+                            label={card.label}
+                            value={stats[card.key]}
+                        />
                     ))}
-                </div>
+                </motion.div>
 
                 <div className="grid gap-4 lg:grid-cols-2">
                     <div className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">

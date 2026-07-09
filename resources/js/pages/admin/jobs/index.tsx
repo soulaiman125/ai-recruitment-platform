@@ -1,8 +1,10 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import JobPostingController from '@/actions/App/Http/Controllers/Admin/JobPostingController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -153,7 +155,7 @@ export default function JobsIndex({ jobs, filters }: JobsIndexProps) {
         <>
             <Head title="Jobs" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Jobs"
                     description="Every job posting on the platform"
@@ -197,74 +199,75 @@ export default function JobsIndex({ jobs, filters }: JobsIndexProps) {
                     </Select>
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="pl-4">Title</TableHead>
-                                <TableHead>Company</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Applications</TableHead>
-                                <TableHead>Created</TableHead>
-                                <TableHead className="pr-4 text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {jobs.data.length === 0 && (
+                {jobs.data.length === 0 ? (
+                    <EmptyState
+                        icon={SearchX}
+                        title="No jobs match your filters"
+                        description="Try a different search term or status filter."
+                    />
+                ) : (
+                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={6}
-                                        className="py-10 text-center text-muted-foreground"
-                                    >
-                                        No jobs match your filters.
-                                    </TableCell>
+                                    <TableHead className="pl-4">
+                                        Title
+                                    </TableHead>
+                                    <TableHead>Company</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Applications</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            )}
+                            </TableHeader>
 
-                            {jobs.data.map((job) => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="pl-4 font-medium">
-                                        {job.title}
-                                    </TableCell>
+                            <TableBody>
+                                {jobs.data.map((job) => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="pl-4 font-medium">
+                                            {job.title}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {job.company?.name ?? '—'}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {job.company?.name ?? '—'}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        <Badge
-                                            variant={statusVariants[job.status]}
-                                        >
-                                            {job.status}
-                                        </Badge>
-                                    </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    statusVariants[job.status]
+                                                }
+                                            >
+                                                {job.status}
+                                            </Badge>
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {job.applications_count}
-                                    </TableCell>
+                                        <TableCell>
+                                            {job.applications_count}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {new Date(
-                                            job.created_at,
-                                        ).toLocaleDateString()}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {new Date(
+                                                job.created_at,
+                                            ).toLocaleDateString()}
+                                        </TableCell>
 
-                                    <TableCell className="pr-4 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <DeleteJobDialog job={job} />
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                        <TableCell className="pr-4 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <DeleteJobDialog job={job} />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 <Pagination paginator={jobs} noun="jobs" />
-            </div>
+            </PageTransition>
         </>
     );
 }

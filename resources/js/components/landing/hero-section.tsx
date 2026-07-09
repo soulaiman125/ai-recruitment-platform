@@ -45,7 +45,7 @@ export function HeroSection() {
 
                     <motion.p
                         variants={fadeUp}
-                        className="mt-6 max-w-md text-lg text-muted-foreground text-pretty"
+                        className="mt-6 max-w-md text-lg text-pretty text-muted-foreground"
                     >
                         Our platform analyzes resumes and matches candidates to
                         jobs using AI — giving every application a clear score,
@@ -72,7 +72,11 @@ export function HeroSection() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.94, y: 12 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                    transition={{
+                        duration: 0.7,
+                        ease: [0.16, 1, 0.3, 1],
+                        delay: 0.2,
+                    }}
                     className="flex justify-center lg:justify-end"
                 >
                     <motion.div

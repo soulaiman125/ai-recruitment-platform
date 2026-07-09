@@ -1,8 +1,10 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import CompanyController from '@/actions/App/Http/Controllers/Admin/CompanyController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,7 +75,7 @@ export default function CompaniesIndex({
         <>
             <Head title="Companies" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="Companies"
                     description="Every company registered on the platform"
@@ -92,98 +94,95 @@ export default function CompaniesIndex({
                     />
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="pl-4">Name</TableHead>
-                                <TableHead>Industry</TableHead>
-                                <TableHead>Owner</TableHead>
-                                <TableHead>Recruiters</TableHead>
-                                <TableHead>Jobs</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="pr-4 text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {companies.data.length === 0 && (
+                {companies.data.length === 0 ? (
+                    <EmptyState
+                        icon={SearchX}
+                        title="No companies match your search"
+                        description="Try a different company name."
+                    />
+                ) : (
+                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={7}
-                                        className="py-10 text-center text-muted-foreground"
-                                    >
-                                        No companies match your search.
-                                    </TableCell>
+                                    <TableHead className="pl-4">Name</TableHead>
+                                    <TableHead>Industry</TableHead>
+                                    <TableHead>Owner</TableHead>
+                                    <TableHead>Recruiters</TableHead>
+                                    <TableHead>Jobs</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            )}
+                            </TableHeader>
 
-                            {companies.data.map((company) => (
-                                <TableRow key={company.id}>
-                                    <TableCell className="pl-4 font-medium">
-                                        {company.name}
-                                    </TableCell>
+                            <TableBody>
+                                {companies.data.map((company) => (
+                                    <TableRow key={company.id}>
+                                        <TableCell className="pl-4 font-medium">
+                                            {company.name}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {company.industry ?? '—'}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {company.industry ?? '—'}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {company.owner ? (
-                                            <div className="min-w-0">
-                                                <p className="truncate">
-                                                    {company.owner.name}
-                                                </p>
-                                                <p className="truncate text-sm text-muted-foreground">
-                                                    {company.owner.email}
-                                                </p>
+                                        <TableCell>
+                                            {company.owner ? (
+                                                <div className="min-w-0">
+                                                    <p className="truncate">
+                                                        {company.owner.name}
+                                                    </p>
+                                                    <p className="truncate text-sm text-muted-foreground">
+                                                        {company.owner.email}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {company.recruiters_count}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {company.job_postings_count}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    company.is_active
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {company.is_active
+                                                    ? 'Active'
+                                                    : 'Inactive'}
+                                            </Badge>
+                                        </TableCell>
+
+                                        <TableCell className="pr-4 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <ToggleActiveButton
+                                                    company={company}
+                                                />
                                             </div>
-                                        ) : (
-                                            <span className="text-muted-foreground">
-                                                —
-                                            </span>
-                                        )}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {company.recruiters_count}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {company.job_postings_count}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                company.is_active
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {company.is_active
-                                                ? 'Active'
-                                                : 'Inactive'}
-                                        </Badge>
-                                    </TableCell>
-
-                                    <TableCell className="pr-4 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <ToggleActiveButton
-                                                company={company}
-                                            />
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 <Pagination paginator={companies} noun="companies" />
-            </div>
+            </PageTransition>
         </>
     );
 }

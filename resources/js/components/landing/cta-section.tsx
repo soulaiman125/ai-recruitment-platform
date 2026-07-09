@@ -26,7 +26,7 @@ export function CtaSection() {
                     <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-balance sm:text-4xl">
                         Ready to hire smarter?
                     </h2>
-                    <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground text-pretty">
+                    <p className="mx-auto mt-4 max-w-xl text-lg text-pretty text-muted-foreground">
                         Create your account and let AI score, match, and rank
                         candidates for you — from day one.
                     </p>

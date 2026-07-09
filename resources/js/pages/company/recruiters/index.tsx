@@ -1,8 +1,11 @@
 import { Form, Head } from '@inertiajs/react';
+import { Users } from 'lucide-react';
 import { useState } from 'react';
 import RecruiterController from '@/actions/App/Http/Controllers/Company/RecruiterController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PageTransition from '@/components/page-transition';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -179,7 +182,7 @@ export default function RecruitersIndex({
         <>
             <Head title="Recruiters" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-4">
                     <Heading
                         title="Recruiters"
@@ -189,70 +192,67 @@ export default function RecruitersIndex({
                     <InviteRecruiterDialog />
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="pl-4">Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Job title</TableHead>
-                                <TableHead>Jobs</TableHead>
-                                <TableHead>Joined</TableHead>
-                                <TableHead className="pr-4 text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {recruiters.length === 0 && (
+                {recruiters.length === 0 ? (
+                    <EmptyState
+                        icon={Users}
+                        title="No recruiters yet"
+                        description="Invite a recruiter with the button above to start posting jobs as a team."
+                    />
+                ) : (
+                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={6}
-                                        className="py-10 text-center text-muted-foreground"
-                                    >
-                                        You have not invited any recruiters yet.
-                                    </TableCell>
+                                    <TableHead className="pl-4">Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Job title</TableHead>
+                                    <TableHead>Jobs</TableHead>
+                                    <TableHead>Joined</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            )}
+                            </TableHeader>
 
-                            {recruiters.map((recruiter) => (
-                                <TableRow key={recruiter.id}>
-                                    <TableCell className="pl-4 font-medium">
-                                        {recruiter.user.name}
-                                    </TableCell>
+                            <TableBody>
+                                {recruiters.map((recruiter) => (
+                                    <TableRow key={recruiter.id}>
+                                        <TableCell className="pl-4 font-medium">
+                                            {recruiter.user.name}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {recruiter.user.email}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {recruiter.user.email}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {recruiter.job_title ?? '—'}
-                                    </TableCell>
+                                        <TableCell>
+                                            {recruiter.job_title ?? '—'}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {recruiter.job_postings_count}
-                                    </TableCell>
+                                        <TableCell>
+                                            {recruiter.job_postings_count}
+                                        </TableCell>
 
-                                    <TableCell className="text-muted-foreground">
-                                        {new Date(
-                                            recruiter.created_at,
-                                        ).toLocaleDateString()}
-                                    </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {new Date(
+                                                recruiter.created_at,
+                                            ).toLocaleDateString()}
+                                        </TableCell>
 
-                                    <TableCell className="pr-4 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <DeleteRecruiterDialog
-                                                recruiter={recruiter}
-                                            />
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+                                        <TableCell className="pr-4 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <DeleteRecruiterDialog
+                                                    recruiter={recruiter}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </PageTransition>
         </>
     );
 }

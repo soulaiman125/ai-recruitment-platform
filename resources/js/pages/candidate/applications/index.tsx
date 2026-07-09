@@ -1,5 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
+import { FileText } from 'lucide-react';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -14,7 +17,7 @@ import {
     applicationStatusVariants,
 } from '@/lib/application-status';
 import { index } from '@/routes/candidate/applications';
-import { show } from '@/routes/candidate/jobs';
+import { index as browseJobs, show } from '@/routes/candidate/jobs';
 import type { ApplicationWithJob } from '@/types/application';
 
 export default function ApplicationsIndex({
@@ -26,21 +29,19 @@ export default function ApplicationsIndex({
         <>
             <Head title="My Applications" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title="My Applications"
                     description="Track the jobs you have applied to"
                 />
 
                 {applications.length === 0 ? (
-                    <div className="rounded-xl border border-sidebar-border/70 py-16 text-center dark:border-sidebar-border">
-                        <p className="font-medium">No applications yet</p>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Browse the open roles and apply to the ones that
-                            match your profile.
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={FileText}
+                        title="No applications yet"
+                        description="Browse the open roles and apply to the ones that match your profile."
+                        action={{ label: 'Browse jobs', href: browseJobs() }}
+                    />
                 ) : (
                     <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
@@ -108,7 +109,7 @@ export default function ApplicationsIndex({
                         </Table>
                     </div>
                 )}
-            </div>
+            </PageTransition>
         </>
     );
 }

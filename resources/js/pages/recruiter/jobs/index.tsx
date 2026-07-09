@@ -1,6 +1,9 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Briefcase } from 'lucide-react';
 import JobPostingController from '@/actions/App/Http/Controllers/Recruiter/JobPostingController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -89,7 +92,7 @@ export default function JobsIndex({ jobs }: { jobs: JobPostingListItem[] }) {
         <>
             <Head title="Jobs" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-4">
                     <Heading
                         title="Jobs"
@@ -106,115 +109,122 @@ export default function JobsIndex({ jobs }: { jobs: JobPostingListItem[] }) {
                     </Button>
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="pl-4">Title</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Applications</TableHead>
-                                <TableHead>Created</TableHead>
-                                <TableHead className="pr-4 text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {jobs.length === 0 && (
+                {jobs.length === 0 ? (
+                    <EmptyState
+                        icon={Briefcase}
+                        title="No jobs yet"
+                        description="Post your first opening to start receiving applications."
+                        action={{
+                            label: 'Create job',
+                            href: JobPostingController.create(),
+                        }}
+                    />
+                ) : (
+                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={5}
-                                        className="py-10 text-center text-muted-foreground"
-                                    >
-                                        You have not posted any jobs yet.
-                                    </TableCell>
+                                    <TableHead className="pl-4">
+                                        Title
+                                    </TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Applications</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            )}
+                            </TableHeader>
 
-                            {jobs.map((job) => (
-                                <TableRow key={job.id}>
-                                    <TableCell className="pl-4 font-medium">
-                                        {job.title}
-                                    </TableCell>
+                            <TableBody>
+                                {jobs.map((job) => (
+                                    <TableRow key={job.id}>
+                                        <TableCell className="pl-4 font-medium">
+                                            {job.title}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        <Badge
-                                            variant={statusVariants[job.status]}
-                                        >
-                                            {job.status}
-                                        </Badge>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <Link
-                                            href={applications(job.slug)}
-                                            className="hover:underline"
-                                            data-test="job-applications-link"
-                                        >
-                                            {job.applications_count}
-                                        </Link>
-                                    </TableCell>
-
-                                    <TableCell className="text-muted-foreground">
-                                        {new Date(
-                                            job.created_at,
-                                        ).toLocaleDateString()}
-                                    </TableCell>
-
-                                    <TableCell className="pr-4 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                asChild
+                                        <TableCell>
+                                            <Badge
+                                                variant={
+                                                    statusVariants[job.status]
+                                                }
                                             >
-                                                <Link
-                                                    href={JobPostingController.edit(
+                                                {job.status}
+                                            </Badge>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Link
+                                                href={applications(job.slug)}
+                                                className="hover:underline"
+                                                data-test="job-applications-link"
+                                            >
+                                                {job.applications_count}
+                                            </Link>
+                                        </TableCell>
+
+                                        <TableCell className="text-muted-foreground">
+                                            {new Date(
+                                                job.created_at,
+                                            ).toLocaleDateString()}
+                                        </TableCell>
+
+                                        <TableCell className="pr-4 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={JobPostingController.edit(
+                                                            job.slug,
+                                                        )}
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                </Button>
+
+                                                <Form
+                                                    {...JobPostingController.publish.form(
                                                         job.slug,
                                                     )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
                                                 >
-                                                    Edit
-                                                </Link>
-                                            </Button>
-
-                                            <Form
-                                                {...JobPostingController.publish.form(
-                                                    job.slug,
-                                                )}
-                                                options={{
-                                                    preserveScroll: true,
-                                                }}
-                                            >
-                                                {({ processing }) => (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        disabled={processing}
-                                                        asChild
-                                                    >
-                                                        <button
-                                                            type="submit"
-                                                            data-test="publish-job-button"
+                                                    {({ processing }) => (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            disabled={
+                                                                processing
+                                                            }
+                                                            asChild
                                                         >
-                                                            {job.status ===
-                                                            'published'
-                                                                ? 'Pause'
-                                                                : 'Publish'}
-                                                        </button>
-                                                    </Button>
-                                                )}
-                                            </Form>
+                                                            <button
+                                                                type="submit"
+                                                                data-test="publish-job-button"
+                                                            >
+                                                                {job.status ===
+                                                                'published'
+                                                                    ? 'Pause'
+                                                                    : 'Publish'}
+                                                            </button>
+                                                        </Button>
+                                                    )}
+                                                </Form>
 
-                                            <DeleteJobDialog job={job} />
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+                                                <DeleteJobDialog job={job} />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </PageTransition>
         </>
     );
 }

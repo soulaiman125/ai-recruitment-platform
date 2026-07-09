@@ -61,7 +61,10 @@ const tracks: Track[] = [
 
 export function HowItWorksSection() {
     return (
-        <section id="how-it-works" className="scroll-mt-20 border-t border-border bg-muted/30 py-24">
+        <section
+            id="how-it-works"
+            className="scroll-mt-20 border-t border-border bg-muted/30 py-24"
+        >
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
                     variants={fadeUp}
@@ -73,7 +76,7 @@ export function HowItWorksSection() {
                     <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
                         How it works
                     </h2>
-                    <p className="mt-4 text-lg text-muted-foreground text-pretty">
+                    <p className="mt-4 text-lg text-pretty text-muted-foreground">
                         A simple flow on both sides of the hire — powered by the
                         same AI underneath.
                     </p>
@@ -115,7 +118,7 @@ export function HowItWorksSection() {
                                             <h3 className="text-sm font-semibold">
                                                 {step.title}
                                             </h3>
-                                            <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                                            <p className="mt-1 text-sm text-pretty text-muted-foreground">
                                                 {step.description}
                                             </p>
                                         </div>

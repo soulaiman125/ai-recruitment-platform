@@ -3,14 +3,17 @@ import {
     FileDown,
     Github,
     Globe,
+    Inbox,
     Linkedin,
     MapPin,
     Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 import InterviewController from '@/actions/App/Http/Controllers/Recruiter/InterviewController';
+import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PageTransition from '@/components/page-transition';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +45,11 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import {
+    scoreBadgeClasses,
+    scoreBadgeVariants,
+    scoreTone,
+} from '@/lib/analysis-status';
+import {
     applicationStatusClasses,
     applicationStatusVariants,
 } from '@/lib/application-status';
@@ -71,7 +79,16 @@ function MatchScore({ score }: { score: number | null }) {
         return <span className="text-muted-foreground">—</span>;
     }
 
-    return <Badge variant="outline">Match {score}%</Badge>;
+    const tone = scoreTone(score);
+
+    return (
+        <Badge
+            variant={scoreBadgeVariants[tone]}
+            className={scoreBadgeClasses[tone]}
+        >
+            Match {score}%
+        </Badge>
+    );
 }
 
 /**
@@ -821,20 +838,18 @@ export default function ApplicationsIndex({
         <>
             <Head title={`Applications · ${job.title}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
                 <Heading
                     title={job.title}
                     description={`${applications.length} application${applications.length === 1 ? '' : 's'} received`}
                 />
 
                 {applications.length === 0 ? (
-                    <div className="rounded-xl border border-sidebar-border/70 py-16 text-center dark:border-sidebar-border">
-                        <p className="font-medium">No applications yet</p>
-
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Candidates who apply to this job will show up here.
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={Inbox}
+                        title="No applications yet"
+                        description="Candidates who apply to this job will show up here."
+                    />
                 ) : (
                     <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
@@ -917,7 +932,7 @@ export default function ApplicationsIndex({
                         </Table>
                     </div>
                 )}
-            </div>
+            </PageTransition>
         </>
     );
 }
