@@ -10,6 +10,18 @@ import { login, register } from '@/routes';
 export function HeroSection() {
     return (
         <section className="relative overflow-hidden">
+            {/* Faint dot grid, fading out toward the edges. Theme-aware via the
+                --border token, so it stays subtle in both light and dark. */}
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 -z-20 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_0%,black,transparent_75%)]"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(circle, var(--border) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                }}
+            />
+
             {/* Soft brand glow behind the hero, purely decorative. */}
             <div
                 aria-hidden
@@ -18,7 +30,13 @@ export function HeroSection() {
                 <div className="h-[32rem] w-[32rem] rounded-full bg-gradient-to-br from-indigo-500/20 via-violet-500/20 to-fuchsia-500/20 blur-3xl" />
             </div>
 
-            <div className="mx-auto grid w-full max-w-6xl items-center gap-16 px-6 py-20 lg:grid-cols-2 lg:py-28">
+            {/* Second, tighter glow anchored behind the floating visual. */}
+            <div
+                aria-hidden
+                className="pointer-events-none absolute top-1/3 -right-24 -z-10 hidden h-96 w-96 rounded-full bg-gradient-to-br from-violet-500/25 to-fuchsia-500/20 blur-3xl lg:block"
+            />
+
+            <div className="mx-auto grid w-full max-w-6xl items-center gap-16 px-6 py-20 lg:grid-cols-2 lg:py-24">
                 <motion.div
                     variants={staggerContainer}
                     initial="hidden"

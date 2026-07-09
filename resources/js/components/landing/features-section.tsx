@@ -43,7 +43,7 @@ const features: Feature[] = [
 
 export function FeaturesSection() {
     return (
-        <section id="features" className="scroll-mt-20 py-24">
+        <section id="features" className="scroll-mt-20 py-20">
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
                     variants={fadeUp}
@@ -66,7 +66,7 @@ export function FeaturesSection() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={viewportOnce}
-                    className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                    className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     {features.map((feature) => (
                         <motion.div

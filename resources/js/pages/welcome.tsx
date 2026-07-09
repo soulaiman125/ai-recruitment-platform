@@ -6,6 +6,8 @@ import { HeroSection } from '@/components/landing/hero-section';
 import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { LandingNavbar } from '@/components/landing/landing-navbar';
 import { SiteFooter } from '@/components/landing/site-footer';
+import { StatsBar } from '@/components/landing/stats-bar';
+import { TestimonialsSection } from '@/components/landing/testimonials-section';
 
 export default function Welcome() {
     const { auth } = usePage().props;
@@ -20,8 +22,10 @@ export default function Welcome() {
                 <LandingNavbar auth={auth} />
                 <main>
                     <HeroSection />
+                    <StatsBar />
                     <FeaturesSection />
                     <HowItWorksSection />
+                    <TestimonialsSection />
                     <CtaSection />
                 </main>
                 <SiteFooter />

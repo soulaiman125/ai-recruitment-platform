@@ -32,5 +32,9 @@ export const staggerContainer: Variants = {
     },
 };
 
-/** Viewport config reused by every whileInView section. */
-export const viewportOnce = { once: true, margin: '-80px' } as const;
+/**
+ * Viewport config reused by every whileInView section. `amount: 0.2` fires as
+ * soon as a fifth of the element is on screen, so wide multi-column grids
+ * reveal reliably instead of leaving trailing cards stuck at low opacity.
+ */
+export const viewportOnce = { once: true, amount: 0.2 } as const;
