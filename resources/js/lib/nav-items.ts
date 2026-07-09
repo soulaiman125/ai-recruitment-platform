@@ -1,16 +1,20 @@
 import {
     Briefcase,
+    Building2,
     CalendarDays,
     FileText,
     FileUp,
     LayoutGrid,
     Search,
+    Users,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { index as candidateApplications } from '@/routes/candidate/applications';
 import { index as candidateInterviews } from '@/routes/candidate/interviews';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
 import { index as candidateResumes } from '@/routes/candidate/resumes';
+import { edit as companyProfile } from '@/routes/company/profile';
+import { index as companyRecruiters } from '@/routes/company/recruiters';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
 import type { NavItem } from '@/types';
 
@@ -21,7 +25,11 @@ import type { NavItem } from '@/types';
 export const navItemsByRole: Record<string, NavItem[]> = {
     admin: [{ title: 'Dashboard', href: dashboard(), icon: LayoutGrid }],
 
-    company: [{ title: 'Dashboard', href: dashboard(), icon: LayoutGrid }],
+    company: [
+        { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'Company Profile', href: companyProfile(), icon: Building2 },
+        { title: 'Recruiters', href: companyRecruiters(), icon: Users },
+    ],
 
     recruiter: [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },

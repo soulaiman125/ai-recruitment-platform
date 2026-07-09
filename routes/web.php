@@ -6,7 +6,9 @@ use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Candidate\JobBrowseController;
 use App\Http\Controllers\Candidate\ResumeController;
+use App\Http\Controllers\Company\CompanyProfileController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
+use App\Http\Controllers\Company\RecruiterController as CompanyRecruiterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Recruiter\ApplicationController as RecruiterApplicationController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
@@ -28,6 +30,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Company
     Route::middleware('role:company')->prefix('company')->name('company.')->group(function () {
         Route::get('dashboard', [CompanyDashboard::class, 'index'])->name('dashboard');
+
+        Route::get('profile', [CompanyProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('profile', [CompanyProfileController::class, 'update'])->name('profile.update');
+
+        Route::get('recruiters', [CompanyRecruiterController::class, 'index'])->name('recruiters.index');
+        Route::post('recruiters', [CompanyRecruiterController::class, 'store'])->name('recruiters.store');
+        Route::delete('recruiters/{recruiter}', [CompanyRecruiterController::class, 'destroy'])->name('recruiters.destroy');
     });
 
     // Recruiter
