@@ -6,6 +6,8 @@ use App\Concerns\ResolvesOwnedCompany;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Interview;
+use App\Models\RecruiterProfile;
+use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,6 +33,26 @@ class DashboardController extends Controller
                     ->whereHas('application.jobPosting', fn ($query) => $query->where('company_id', $company->id))
                     ->count(),
             ],
+
+            // A short roster for the "Recruiters" mini-list. The user name is
+            // eager-loaded and the posting tally comes from a withCount, so the
+            // whole list resolves in one query and stays N+1 free.
+            'recruiters_list' => RecruiterProfile::query()
+                ->where('company_id', $company->id)
+                ->with('user:id,name')
+                ->withCount('jobPostings')
+                ->take(6)
+                ->get()
+                ->map(function (RecruiterProfile $recruiter): array {
+                    /** @var User|null $user */
+                    $user = $recruiter->user;
+
+                    return [
+                        'id' => $recruiter->id,
+                        'name' => $user?->name,
+                        'jobs_count' => (int) $recruiter->getAttribute('job_postings_count'),
+                    ];
+                }),
         ]);
     }
 }

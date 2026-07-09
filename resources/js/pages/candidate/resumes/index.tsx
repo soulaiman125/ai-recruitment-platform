@@ -543,7 +543,7 @@ export default function ResumesIndex({
                         description="Upload a PDF above to attach it to the jobs you apply to."
                     />
                 ) : (
-                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
                             <TableHeader>
                                 <TableRow>

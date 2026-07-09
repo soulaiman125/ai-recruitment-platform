@@ -96,7 +96,7 @@ export default function InterviewsIndex({
                         description="When a recruiter schedules an interview, it will show up here."
                     />
                 ) : (
-                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
                             <TableHeader>
                                 <TableRow>

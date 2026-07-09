@@ -4,18 +4,21 @@ import { useCountUp } from '@/hooks/use-count-up';
 import { fadeSlideUp } from '@/lib/motion';
 
 /**
- * One dashboard KPI: an icon, a label, and a value. Entrance is a fade and
- * slide-up orchestrated by a parent `staggerContainer`, and numeric values
- * count up from zero on mount. Hover gives a gentle lift.
+ * One dashboard KPI: a violet-tinted icon, a label, and a value. Entrance is a
+ * fade and slide-up orchestrated by a parent `staggerContainer`, and numeric
+ * values count up from zero on mount. An optional `context` line adds a small
+ * muted footnote (e.g. "3 published"). Hover gives a gentle lift.
  */
 export default function StatCard({
     icon: Icon,
     label,
     value,
+    context,
 }: {
     icon: LucideIcon;
     label: string;
     value: number | string;
+    context?: string;
 }) {
     const reduceMotion = useReducedMotion();
     const isNumeric = typeof value === 'number';
@@ -33,12 +36,18 @@ export default function StatCard({
             <div className="flex items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">{label}</p>
 
-                <Icon className="size-4 shrink-0 text-muted-foreground" />
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="size-5" />
+                </div>
             </div>
 
-            <p className="mt-2 text-3xl font-bold tabular-nums">
+            <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
                 {isNumeric ? counted : value}
             </p>
+
+            {context && (
+                <p className="mt-1 text-xs text-muted-foreground">{context}</p>
+            )}
         </motion.div>
     );
 }

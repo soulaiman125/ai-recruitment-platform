@@ -51,10 +51,18 @@ const statusVariants: Record<
     JobStatus,
     'default' | 'secondary' | 'outline' | 'destructive'
 > = {
-    published: 'default',
-    draft: 'secondary',
+    published: 'outline',
+    draft: 'outline',
     paused: 'outline',
-    closed: 'destructive',
+    closed: 'outline',
+};
+
+const statusClasses: Record<JobStatus, string> = {
+    published:
+        'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    draft: 'border-transparent bg-muted text-muted-foreground',
+    paused: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    closed: 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400',
 };
 
 function queryFor(search: string, status: string | null) {
@@ -238,6 +246,9 @@ export default function JobsIndex({ jobs, filters }: JobsIndexProps) {
                                             <Badge
                                                 variant={
                                                     statusVariants[job.status]
+                                                }
+                                                className={
+                                                    statusClasses[job.status]
                                                 }
                                             >
                                                 {job.status}

@@ -101,7 +101,7 @@ export default function CompaniesIndex({
                         description="Try a different company name."
                     />
                 ) : (
-                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
                             <TableHeader>
                                 <TableRow>

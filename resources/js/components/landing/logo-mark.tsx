@@ -1,21 +1,19 @@
-import { Sparkles } from 'lucide-react';
+import AppLogoIcon from '@/components/app-logo-icon';
 
 import { cn } from '@/lib/utils';
 
 /**
- * Brand logo: a rounded gradient tile with a spark glyph. The accent
- * gradient (indigo -> violet -> fuchsia) is the one colourful signature
- * we allow ourselves on top of the otherwise monochrome theme tokens.
+ * The landing page's logo. A thin wrapper over the shared brand mark so the
+ * marketing site and the authenticated app never drift apart — the gradient
+ * ring lives inside the mark itself, and `text-*` tints the sparkle and check.
  */
 export function LogoMark({ className }: { className?: string }) {
     return (
-        <div
+        <AppLogoIcon
             className={cn(
-                'flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/25',
+                'size-9 shrink-0 text-violet-500 dark:text-violet-400',
                 className,
             )}
-        >
-            <Sparkles className="size-5" strokeWidth={2.25} />
-        </div>
+        />
     );
 }

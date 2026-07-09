@@ -198,7 +198,7 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                         description="Try a different search term or role filter."
                     />
                 ) : (
-                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
                             <TableHeader>
                                 <TableRow>

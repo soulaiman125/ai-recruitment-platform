@@ -17,9 +17,30 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
+        // Users registered per day over the last 14 days. A single query pulls
+        // the timestamps; the days are grouped and the gaps filled with zero in
+        // PHP so the chart receives a dense, gap-free series.
+        $since = now()->startOfDay()->subDays(13);
+
+        $counts = User::query()
+            ->where('created_at', '>=', $since)
+            ->get(['created_at'])
+            ->groupBy(fn (User $user) => $user->created_at->toDateString())
+            ->map
+            ->count();
+
+        $usersSeries = collect(range(0, 13))
+            ->map(function (int $offset) use ($since, $counts): array {
+                $day = $since->copy()->addDays($offset)->toDateString();
+
+                return ['date' => $day, 'count' => (int) ($counts[$day] ?? 0)];
+            })
+            ->all();
+
         // Each KPI is a single aggregate query, so the platform dashboard never
         // fans out into per-row lookups no matter how large the tables grow.
         return Inertia::render('admin/dashboard', [
+            'users_series' => $usersSeries,
             'stats' => [
                 'users' => User::query()->count(),
                 'companies' => Company::query()->count(),

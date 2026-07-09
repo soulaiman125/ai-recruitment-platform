@@ -5,15 +5,18 @@ export const analysisStatusVariants: Record<
     AnalysisStatus,
     'default' | 'secondary' | 'outline' | 'destructive'
 > = {
-    pending: 'secondary',
+    pending: 'outline',
     processing: 'outline',
-    completed: 'default',
-    failed: 'destructive',
+    completed: 'outline',
+    failed: 'outline',
 };
 
-/** Completed is the one happy terminal state, so lift it out of the defaults. */
-export const analysisStatusClasses: Partial<Record<AnalysisStatus, string>> = {
-    completed: 'bg-emerald-600 text-white hover:bg-emerald-600/90',
+export const analysisStatusClasses: Record<AnalysisStatus, string> = {
+    pending: 'border-transparent bg-muted text-muted-foreground',
+    processing: 'border-primary/20 bg-primary/10 text-primary',
+    completed:
+        'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    failed: 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400',
 };
 
 export type ScoreTone = 'strong' | 'fair' | 'weak';
@@ -39,18 +42,18 @@ export const scoreStrokeClasses: Record<ScoreTone, string> = {
     weak: 'stroke-red-600 dark:stroke-red-500',
 };
 
-/** Badge variant + class per band, so a match score reads at a glance. */
+/** Badge variant + tone class per band, so a match score reads at a glance. */
 export const scoreBadgeVariants: Record<
     ScoreTone,
-    'default' | 'secondary' | 'destructive'
+    'default' | 'secondary' | 'destructive' | 'outline'
 > = {
-    strong: 'default',
-    fair: 'secondary',
-    weak: 'destructive',
+    strong: 'outline',
+    fair: 'outline',
+    weak: 'outline',
 };
 
 export const scoreBadgeClasses: Record<ScoreTone, string> = {
-    strong: 'bg-emerald-600 text-white hover:bg-emerald-600/90',
-    fair: 'bg-amber-500/15 text-amber-700 hover:bg-amber-500/15 dark:text-amber-500',
-    weak: '',
+    strong: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    fair: 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    weak: 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400',
 };

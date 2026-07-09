@@ -43,7 +43,7 @@ export default function ApplicationsIndex({
                         action={{ label: 'Browse jobs', href: browseJobs() }}
                     />
                 ) : (
-                    <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <Table>
                             <TableHeader>
                                 <TableRow>

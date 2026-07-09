@@ -9,7 +9,9 @@ import {
     Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import Heading from '@/components/heading';
+import ActivityChart from '@/components/activity-chart';
+import type {ActivityPoint} from '@/components/activity-chart';
+import DashboardHeader from '@/components/dashboard-header';
 import StatCard from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { staggerContainer } from '@/lib/motion';
@@ -23,30 +25,54 @@ type DashboardProps = {
     stats: AdminStats;
     latest_users: AdminLatestUser[];
     latest_applications: AdminLatestApplication[];
+    users_series: ActivityPoint[];
 };
 
-const cards: { key: keyof AdminStats; label: string; icon: LucideIcon }[] = [
-    { key: 'users', label: 'Total Users', icon: Users },
-    { key: 'companies', label: 'Companies', icon: Building2 },
-    { key: 'published_jobs', label: 'Published Jobs', icon: Briefcase },
-    { key: 'applications', label: 'Applications', icon: FileText },
-    { key: 'analyses', label: 'Analyses Completed', icon: Sparkles },
-    { key: 'interviews', label: 'Interviews Scheduled', icon: CalendarCheck },
+const cards: {
+    key: keyof AdminStats;
+    label: string;
+    icon: LucideIcon;
+    context: string;
+}[] = [
+    { key: 'users', label: 'Total Users', icon: Users, context: 'Across all roles' },
+    { key: 'companies', label: 'Companies', icon: Building2, context: 'Registered' },
+    {
+        key: 'published_jobs',
+        label: 'Published Jobs',
+        icon: Briefcase,
+        context: 'Live openings',
+    },
+    {
+        key: 'applications',
+        label: 'Applications',
+        icon: FileText,
+        context: 'All-time',
+    },
+    {
+        key: 'analyses',
+        label: 'Analyses Completed',
+        icon: Sparkles,
+        context: 'AI-processed',
+    },
+    {
+        key: 'interviews',
+        label: 'Interviews Scheduled',
+        icon: CalendarCheck,
+        context: 'Upcoming',
+    },
 ];
 
 export default function AdminDashboard({
     stats,
     latest_users,
     latest_applications,
+    users_series,
 }: DashboardProps) {
     return (
         <>
             <Head title="Admin Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <Heading
-                    title="Admin Dashboard"
-                    description="Manage users, companies, and platform settings"
-                />
+                <DashboardHeader subtitle="Platform overview — users, companies, and hiring activity" />
 
                 <motion.div
                     variants={staggerContainer}
@@ -60,9 +86,16 @@ export default function AdminDashboard({
                             icon={card.icon}
                             label={card.label}
                             value={stats[card.key]}
+                            context={card.context}
                         />
                     ))}
                 </motion.div>
+
+                <ActivityChart
+                    title="New users"
+                    description="Registrations over the last 14 days"
+                    data={users_series}
+                />
 
                 <div className="grid gap-4 lg:grid-cols-2">
                     <div className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\CandidateProfile;
+use App\Models\Company;
+use App\Models\JobPosting;
 use App\Models\ResumeAnalysis;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +18,31 @@ class DashboardController extends Controller
     public function index(): Response
     {
         $profile = $this->candidateProfile();
+
+        // The most recent application, with just the posting title and company
+        // name eager-loaded, so the "Latest application" mini-card stays N+1
+        // free. Null when the candidate has not applied anywhere yet.
+        /** @var Application|null $latestApplication */
+        $latestApplication = $profile->applications()
+            ->with(['jobPosting:id,title,company_id', 'jobPosting.company:id,name'])
+            ->latest('applied_at')
+            ->first();
+
+        $latestApplicationPayload = null;
+
+        if ($latestApplication !== null) {
+            /** @var JobPosting|null $job */
+            $job = $latestApplication->jobPosting;
+            /** @var Company|null $company */
+            $company = $job?->company;
+
+            $latestApplicationPayload = [
+                'job_title' => $job?->title,
+                'company_name' => $company?->name,
+                'status' => $latestApplication->status,
+                'applied_at' => $latestApplication->applied_at,
+            ];
+        }
 
         // Each KPI is a single aggregate query scoped to this candidate, so the
         // dashboard never fans out into per-row lookups.
@@ -34,6 +62,7 @@ class DashboardController extends Controller
                     ->orderByDesc('resumes.created_at')
                     ->value('resume_analyses.overall_score'),
             ],
+            'latest_application' => $latestApplicationPayload,
         ]);
     }
 
