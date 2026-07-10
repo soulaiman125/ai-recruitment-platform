@@ -3,7 +3,11 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { AnalysisCard } from '@/components/landing/analysis-card';
-import { fadeUp, hoverLift, staggerContainer } from '@/components/landing/animations';
+import {
+    fadeUp,
+    hoverLift,
+    staggerContainer,
+} from '@/components/landing/animations';
 import { DotGrid, GlowOrb } from '@/components/landing/background-decor';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

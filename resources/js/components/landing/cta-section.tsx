@@ -4,17 +4,23 @@ import { ArrowRight } from 'lucide-react';
 
 import {
     hiddenState,
+    hoverLift,
     shownState,
     useReveal,
 } from '@/components/landing/animations';
+import { DotGrid, GlowOrb } from '@/components/landing/background-decor';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 
 export function CtaSection() {
     const { ref, show, transition } = useReveal<HTMLElement>();
 
     return (
-        <section ref={ref} className="py-20">
+        <section ref={ref} className="relative overflow-hidden py-20">
+            <DotGrid mask="radial-gradient(ellipse 55% 60% at 50% 50%, black, transparent 75%)" />
+            <GlowOrb className="bottom-0 left-1/2 size-[36rem] -translate-x-1/2 translate-y-1/4" />
+
             <div className="mx-auto w-full max-w-6xl px-6">
                 <motion.div
                     initial={hiddenState}
@@ -39,14 +45,17 @@ export function CtaSection() {
                             Ready to hire smarter?
                         </h2>
                         <p className="mx-auto mt-4 max-w-xl text-lg text-pretty text-white/80">
-                            Create your account and let AI score, match, and rank
-                            candidates for you — from day one.
+                            Create your account and let AI score, match, and
+                            rank candidates for you — from day one.
                         </p>
                         <div className="mt-8 flex justify-center">
                             <Button
                                 asChild
                                 size="lg"
-                                className="bg-white text-violet-700 hover:bg-white/90"
+                                className={cn(
+                                    'bg-white text-violet-700 hover:bg-white/90',
+                                    hoverLift,
+                                )}
                             >
                                 <Link href={register()}>
                                     Get started for free

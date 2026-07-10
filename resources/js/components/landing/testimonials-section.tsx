@@ -15,13 +15,14 @@ type Testimonial = {
 };
 
 // Fictional, illustrative quotes — no real people or companies.
-const testimonials: Testimonial[] = [
-    {
-        quote: 'The match scores put the strongest candidates right at the top. What used to take an afternoon of reading now takes minutes.',
-        name: 'Maya Bennett',
-        role: 'HR Manager',
-        initials: 'MB',
-    },
+const lead: Testimonial = {
+    quote: 'The match scores put the strongest candidates right at the top. What used to take an afternoon of reading now takes minutes.',
+    name: 'Maya Bennett',
+    role: 'HR Manager',
+    initials: 'MB',
+};
+
+const asides: Testimonial[] = [
     {
         quote: 'I finally understood why my CV kept getting passed over. The feedback was specific, and my next application landed an interview.',
         name: 'Daniel Osei',
@@ -40,51 +41,67 @@ export function TestimonialsSection() {
     const { ref, show, transition } = useReveal<HTMLElement>();
 
     return (
-        <section ref={ref} className="py-20">
+        <section ref={ref} className="border-t border-border/60 py-20 lg:py-28">
             <div className="mx-auto w-full max-w-6xl px-6">
-                <motion.div
+                <motion.p
                     initial={hiddenState}
                     animate={show ? shownState : hiddenState}
                     transition={transition(0)}
-                    className="mx-auto max-w-2xl text-center"
+                    className="text-xs font-medium tracking-widest text-muted-foreground uppercase"
                 >
-                    <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-                        Built for both sides of the hire
-                    </h2>
-                    <p className="mt-4 text-lg text-pretty text-muted-foreground">
-                        Recruiters move faster, candidates get clarity — the same
-                        AI working for everyone.
-                    </p>
-                </motion.div>
+                    Both sides of the hire
+                </motion.p>
 
-                <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
-                    {testimonials.map((testimonial, index) => (
-                        <motion.figure
-                            key={testimonial.name}
-                            initial={hiddenState}
-                            animate={show ? shownState : hiddenState}
-                            transition={transition(index + 1)}
-                            className="flex flex-col rounded-2xl border border-border bg-card p-6"
-                        >
-                            <Quote className="size-6 text-violet-500/60" />
-                            <blockquote className="mt-4 flex-1 text-sm text-pretty text-foreground/90">
-                                “{testimonial.quote}”
-                            </blockquote>
-                            <figcaption className="mt-6 flex items-center gap-3">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-sm font-semibold text-white">
-                                    {testimonial.initials}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold">
-                                        {testimonial.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {testimonial.role}
-                                    </p>
-                                </div>
-                            </figcaption>
-                        </motion.figure>
-                    ))}
+                <div className="mt-10 grid gap-14 lg:grid-cols-5 lg:gap-20">
+                    {/* One quote carries the section. */}
+                    <motion.figure
+                        initial={hiddenState}
+                        animate={show ? shownState : hiddenState}
+                        transition={transition(1)}
+                        className="lg:col-span-3"
+                    >
+                        <Quote className="size-8 text-violet-500/50" />
+                        <blockquote className="mt-6 text-2xl leading-snug font-medium tracking-tight text-balance sm:text-3xl">
+                            “{lead.quote}”
+                        </blockquote>
+                        <figcaption className="mt-8 flex items-center gap-4">
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-sm font-semibold text-white">
+                                {lead.initials}
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold">
+                                    {lead.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {lead.role}
+                                </p>
+                            </div>
+                        </figcaption>
+                    </motion.figure>
+
+                    {/* The other two recede into the margin. */}
+                    <div className="flex flex-col justify-center gap-8 lg:col-span-2">
+                        {asides.map((aside, index) => (
+                            <motion.figure
+                                key={aside.name}
+                                initial={hiddenState}
+                                animate={show ? shownState : hiddenState}
+                                transition={transition(2 + index)}
+                                className="border-l border-border pl-5"
+                            >
+                                <blockquote className="text-sm text-pretty text-muted-foreground">
+                                    “{aside.quote}”
+                                </blockquote>
+                                <figcaption className="mt-3 text-xs font-medium">
+                                    {aside.name}
+                                    <span className="text-muted-foreground">
+                                        {' '}
+                                        · {aside.role}
+                                    </span>
+                                </figcaption>
+                            </motion.figure>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
