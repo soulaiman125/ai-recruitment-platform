@@ -2,12 +2,14 @@ import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     ArrowRight,
+    Bookmark,
     CalendarCheck,
     FileText,
     Files,
     Gauge,
     Search,
     Upload,
+    UserRound,
 } from 'lucide-react';
 import DashboardHeader from '@/components/dashboard-header';
 import ScoreRing from '@/components/score-ring';
@@ -21,6 +23,7 @@ import {
 } from '@/lib/application-status';
 import { staggerContainer } from '@/lib/motion';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
+import { edit as candidateProfile } from '@/routes/candidate/profile';
 import { index as candidateResumes } from '@/routes/candidate/resumes';
 import type { ApplicationStatus } from '@/types/application';
 
@@ -35,6 +38,7 @@ type CandidateStats = {
     applications: number;
     in_interview: number;
     resumes: number;
+    saved: number;
     resume_score: number | null;
 };
 
@@ -47,9 +51,11 @@ const readinessLabels: Record<ReturnType<typeof scoreTone>, string> = {
 export default function CandidateDashboard({
     stats,
     latest_application,
+    profile_incomplete,
 }: {
     stats: CandidateStats;
     latest_application: LatestApplication | null;
+    profile_incomplete: boolean;
 }) {
     return (
         <>
@@ -57,11 +63,33 @@ export default function CandidateDashboard({
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <DashboardHeader subtitle="Track your applications, resume analysis, and job matches" />
 
+                {profile_incomplete && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sidebar-border/70 bg-card p-4 dark:border-sidebar-border">
+                        <div className="min-w-0">
+                            <p className="font-medium">
+                                Complete your profile so recruiters see your
+                                strengths
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Add a title and your skills — they show up the
+                                moment a recruiter opens your application.
+                            </p>
+                        </div>
+
+                        <Button asChild size="sm">
+                            <Link href={candidateProfile()}>
+                                <UserRound className="size-4" />
+                                Complete profile
+                            </Link>
+                        </Button>
+                    </div>
+                )}
+
                 <motion.div
                     variants={staggerContainer}
                     initial="hidden"
                     animate="visible"
-                    className="grid auto-rows-min gap-4 md:grid-cols-4"
+                    className="grid auto-rows-min gap-4 md:grid-cols-2 xl:grid-cols-5"
                 >
                     <StatCard
                         icon={FileText}
@@ -74,6 +102,12 @@ export default function CandidateDashboard({
                         label="In Interview"
                         value={stats.in_interview}
                         context="Active stage"
+                    />
+                    <StatCard
+                        icon={Bookmark}
+                        label="Saved Jobs"
+                        value={stats.saved}
+                        context="Bookmarked"
                     />
                     <StatCard
                         icon={Files}

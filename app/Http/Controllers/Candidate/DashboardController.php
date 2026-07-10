@@ -51,6 +51,7 @@ class DashboardController extends Controller
                 'applications' => $profile->applications()->count(),
                 'in_interview' => $profile->applications()->where('status', 'interview')->count(),
                 'resumes' => $profile->resumes()->count(),
+                'saved' => $profile->savedJobs()->count(),
                 // The default resume wins, otherwise the most recent one; null
                 // whenever none of the candidate's resumes has a completed
                 // analysis yet.
@@ -63,6 +64,9 @@ class DashboardController extends Controller
                     ->value('resume_analyses.overall_score'),
             ],
             'latest_application' => $latestApplicationPayload,
+            // Drives the "complete your profile" nudge: these two fields are
+            // the ones the recruiter's applicant dialog leads with.
+            'profile_incomplete' => blank($profile->title) && blank($profile->skills),
         ]);
     }
 

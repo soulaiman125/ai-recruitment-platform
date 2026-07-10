@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CandidateProfile extends Model
@@ -48,5 +49,16 @@ class CandidateProfile extends Model
     public function resumes(): HasMany
     {
         return $this->hasMany(Resume::class);
+    }
+
+    /**
+     * The postings this candidate bookmarked to apply to later.
+     *
+     * @return BelongsToMany<JobPosting, $this>
+     */
+    public function savedJobs(): BelongsToMany
+    {
+        return $this->belongsToMany(JobPosting::class, 'saved_jobs')
+            ->withTimestamps();
     }
 }

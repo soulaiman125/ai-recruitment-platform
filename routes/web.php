@@ -8,7 +8,9 @@ use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Candidate\JobBrowseController;
+use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Candidate\ResumeController;
+use App\Http\Controllers\Candidate\SavedJobController;
 use App\Http\Controllers\Company\CompanyProfileController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\Company\RecruiterController as CompanyRecruiterController;
@@ -72,9 +74,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:candidate')->prefix('candidate')->name('candidate.')->group(function () {
         Route::get('dashboard', [CandidateDashboard::class, 'index'])->name('dashboard');
 
+        Route::get('profile', [CandidateProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('profile', [CandidateProfileController::class, 'update'])->name('profile.update');
+
         Route::get('jobs', [JobBrowseController::class, 'index'])->name('jobs.index');
         Route::get('jobs/{job}', [JobBrowseController::class, 'show'])->name('jobs.show');
         Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
+        Route::post('jobs/{job}/save', [SavedJobController::class, 'store'])->name('jobs.save');
+        Route::delete('jobs/{job}/save', [SavedJobController::class, 'destroy'])->name('jobs.unsave');
+
+        Route::get('saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
 
         Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
 

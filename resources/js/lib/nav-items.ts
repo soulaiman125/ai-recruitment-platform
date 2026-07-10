@@ -1,4 +1,5 @@
 import {
+    Bookmark,
     Briefcase,
     Building2,
     CalendarDays,
@@ -6,6 +7,7 @@ import {
     FileUp,
     LayoutGrid,
     Search,
+    UserRound,
     Users,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
@@ -15,7 +17,9 @@ import { index as adminUsers } from '@/routes/admin/users';
 import { index as candidateApplications } from '@/routes/candidate/applications';
 import { index as candidateInterviews } from '@/routes/candidate/interviews';
 import { index as candidateJobs } from '@/routes/candidate/jobs';
+import { edit as candidateProfile } from '@/routes/candidate/profile';
 import { index as candidateResumes } from '@/routes/candidate/resumes';
+import { index as candidateSavedJobs } from '@/routes/candidate/saved-jobs';
 import { edit as companyProfile } from '@/routes/company/profile';
 import { index as companyRecruiters } from '@/routes/company/recruiters';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
@@ -46,7 +50,9 @@ export const navItemsByRole: Record<string, NavItem[]> = {
 
     candidate: [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'My Profile', href: candidateProfile(), icon: UserRound },
         { title: 'Browse Jobs', href: candidateJobs(), icon: Search },
+        { title: 'Saved Jobs', href: candidateSavedJobs(), icon: Bookmark },
         {
             title: 'My Applications',
             href: candidateApplications(),

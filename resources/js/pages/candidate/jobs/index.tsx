@@ -1,71 +1,33 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { MapPin, Search, SearchX } from 'lucide-react';
+import { Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
+import JobCard from '@/components/job-card';
 import PageTransition from '@/components/page-transition';
-import { Badge } from '@/components/ui/badge';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { fadeSlideUp, staggerContainer } from '@/lib/motion';
-import { index, show } from '@/routes/candidate/jobs';
+import { index } from '@/routes/candidate/jobs';
 import type { JobPostingWithCompany } from '@/types/job';
 
 type JobsBrowseProps = {
     jobs: JobPostingWithCompany[];
+    savedJobIds: number[];
     filters: {
         search: string;
     };
 };
 
-function JobCard({ job }: { job: JobPostingWithCompany }) {
-    return (
-        <Link href={show(job.slug)} className="group" data-test="job-card-link">
-            <Card className="h-full transition-colors group-hover:border-primary/50">
-                <CardHeader>
-                    <CardTitle className="line-clamp-2">{job.title}</CardTitle>
-
-                    <CardDescription>{job.company.name}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="flex flex-col gap-3">
-                    {job.location && (
-                        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <MapPin className="size-3.5 shrink-0" />
-                            {job.location}
-                        </p>
-                    )}
-
-                    <div className="flex flex-wrap gap-1.5">
-                        {job.employment_type && (
-                            <Badge variant="secondary">
-                                {job.employment_type}
-                            </Badge>
-                        )}
-
-                        {job.work_mode && (
-                            <Badge variant="outline">{job.work_mode}</Badge>
-                        )}
-                    </div>
-
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
-                        {job.description}
-                    </p>
-                </CardContent>
-            </Card>
-        </Link>
-    );
-}
-
-export default function JobsBrowse({ jobs, filters }: JobsBrowseProps) {
+export default function JobsBrowse({
+    jobs,
+    savedJobIds,
+    filters,
+}: JobsBrowseProps) {
     const [search, setSearch] = useState(filters.search);
+
+    // Membership test per card, so the grid stays linear rather than quadratic.
+    const savedIds = new Set(savedJobIds);
 
     // Debounce the query so typing does not fire a request per keystroke.
     useEffect(() => {
@@ -130,7 +92,10 @@ export default function JobsBrowse({ jobs, filters }: JobsBrowseProps) {
                                 variants={fadeSlideUp}
                                 className="h-full"
                             >
-                                <JobCard job={job} />
+                                <JobCard
+                                    job={job}
+                                    isSaved={savedIds.has(job.id)}
+                                />
                             </motion.div>
                         ))}
                     </motion.div>

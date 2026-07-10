@@ -33,8 +33,18 @@ class JobBrowseController extends Controller
             ->latest()
             ->get();
 
+        /** @var User $user */
+        $user = Auth::user();
+
+        $profile = $user->candidateProfile;
+
         return Inertia::render('candidate/jobs/index', [
             'jobs' => $jobs,
+            // One extra query for the whole grid: each card looks its own id up
+            // in this set, rather than the list carrying a per-row lookup.
+            'savedJobIds' => $profile === null ? [] : $profile->savedJobs()
+                ->pluck('job_postings.id')
+                ->all(),
             'filters' => [
                 'search' => $search,
             ],
@@ -60,6 +70,9 @@ class JobBrowseController extends Controller
             'job' => $job,
             'hasApplied' => $profile !== null && $job->applications()
                 ->where('candidate_profile_id', $profile->id)
+                ->exists(),
+            'isSaved' => $profile !== null && $job->savedBy()
+                ->whereKey($profile->id)
                 ->exists(),
             // The apply dialog preselects the first one, so the default resume
             // has to sort ahead of the rest.

@@ -1,5 +1,11 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { CalendarDays, Building2, MapPin } from 'lucide-react';
+import {
+    Bookmark,
+    BookmarkCheck,
+    CalendarDays,
+    Building2,
+    MapPin,
+} from 'lucide-react';
 import { useState } from 'react';
 import ApplicationController from '@/actions/App/Http/Controllers/Candidate/ApplicationController';
 import Heading from '@/components/heading';
@@ -25,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { toggleSavedJob } from '@/lib/saved-jobs';
 import { index } from '@/routes/candidate/jobs';
 import { index as resumesIndex } from '@/routes/candidate/resumes';
 import type { JobPostingWithCompany } from '@/types/job';
@@ -205,11 +212,18 @@ function ApplyDialog({
 type ShowJobProps = {
     job: JobPostingWithCompany;
     hasApplied: boolean;
+    isSaved: boolean;
     resumes: Resume[];
 };
 
-export default function ShowJob({ job, hasApplied, resumes }: ShowJobProps) {
+export default function ShowJob({
+    job,
+    hasApplied,
+    isSaved,
+    resumes,
+}: ShowJobProps) {
     const salary = formatSalaryRange(job.salary_min, job.salary_max);
+    const SaveIcon = isSaved ? BookmarkCheck : Bookmark;
 
     return (
         <>
@@ -219,13 +233,32 @@ export default function ShowJob({ job, hasApplied, resumes }: ShowJobProps) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title={job.title} description={job.company.name} />
 
-                    {hasApplied ? (
-                        <Button disabled data-test="applied-button">
-                            Applied ✓
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => toggleSavedJob(job.slug, isSaved)}
+                            aria-pressed={isSaved}
+                            data-test="save-job-button"
+                        >
+                            <SaveIcon
+                                className={
+                                    isSaved
+                                        ? 'size-4 fill-primary text-primary'
+                                        : 'size-4'
+                                }
+                            />
+                            {isSaved ? 'Saved' : 'Save'}
                         </Button>
-                    ) : (
-                        <ApplyDialog job={job} resumes={resumes} />
-                    )}
+
+                        {hasApplied ? (
+                            <Button disabled data-test="applied-button">
+                                Applied ✓
+                            </Button>
+                        ) : (
+                            <ApplyDialog job={job} resumes={resumes} />
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
