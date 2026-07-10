@@ -26,19 +26,39 @@ class ApplicationController extends Controller
     /**
      * List the applications received by one of the recruiter's job postings.
      */
-    public function index(JobPosting $job): Response
+    public function index(Request $request, JobPosting $job): Response
     {
         $this->authorizeJob($job);
+
+        // Best match leads, because ranking candidates is the point of the AI
+        // score. An unknown `?sort=` value silently falls back to it.
+        $sort = $request->string('sort')->toString();
+
+        if (! in_array($sort, ['match', 'newest', 'oldest'], true)) {
+            $sort = 'match';
+        }
 
         $applications = $job->applications()
             // Eager load both levels so the table never queries per row.
             ->with(['candidate.user', 'resume', 'interviews' => fn ($query) => $query->orderBy('scheduled_at')])
-            ->latest('applied_at')
+            ->when(
+                $sort === 'match',
+                // `match_score IS NULL` sorts false (0) before true (1), so
+                // scored candidates rank above the unscored ones instead of
+                // NULL winning or losing depending on the driver. `applied_at`
+                // breaks ties between equal scores.
+                fn ($query) => $query
+                    ->orderByRaw('match_score IS NULL, match_score DESC')
+                    ->latest('applied_at'),
+            )
+            ->when($sort === 'newest', fn ($query) => $query->latest('applied_at'))
+            ->when($sort === 'oldest', fn ($query) => $query->oldest('applied_at'))
             ->get();
 
         return Inertia::render('recruiter/jobs/applications/index', [
             'job' => $job,
             'applications' => $applications,
+            'sort' => $sort,
         ]);
     }
 

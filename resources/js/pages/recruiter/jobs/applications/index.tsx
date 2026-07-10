@@ -825,24 +825,85 @@ function StatusSelect({
     );
 }
 
+/** How the recruiter has ordered the applicant table. */
+type ApplicationSort = 'match' | 'newest' | 'oldest';
+
+const sortLabels: Record<ApplicationSort, string> = {
+    match: 'Best match',
+    newest: 'Newest',
+    oldest: 'Oldest',
+};
+
+/** A top-ranked candidate has to clear this to earn the highlight. */
+const STRONG_MATCH = 70;
+
+function SortSelect({ job, sort }: { job: JobPosting; sort: ApplicationSort }) {
+    const changeSort = (value: string) => {
+        router.get(
+            applications(job.slug).url,
+            { sort: value },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort by</span>
+
+            <Select value={sort} onValueChange={changeSort}>
+                <SelectTrigger
+                    className="w-36"
+                    size="sm"
+                    aria-label="Sort applications"
+                    data-test="application-sort-select"
+                >
+                    <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                    {(Object.keys(sortLabels) as ApplicationSort[]).map(
+                        (value) => (
+                            <SelectItem key={value} value={value}>
+                                {sortLabels[value]}
+                            </SelectItem>
+                        ),
+                    )}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
 type ApplicationsIndexProps = {
     job: JobPosting;
     applications: ApplicationWithCandidate[];
+    sort: ApplicationSort;
 };
 
 export default function ApplicationsIndex({
     job,
     applications,
+    sort,
 }: ApplicationsIndexProps) {
     return (
         <>
             <Head title={`Applications · ${job.title}`} />
 
             <PageTransition className="flex h-full flex-1 flex-col gap-4 p-4">
-                <Heading
-                    title={job.title}
-                    description={`${applications.length} application${applications.length === 1 ? '' : 's'} received`}
-                />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <Heading
+                        title={job.title}
+                        description={`${applications.length} application${applications.length === 1 ? '' : 's'} received`}
+                    />
+
+                    {applications.length > 0 && (
+                        <SortSelect job={job} sort={sort} />
+                    )}
+                </div>
 
                 {applications.length === 0 ? (
                     <EmptyState
@@ -871,8 +932,21 @@ export default function ApplicationsIndex({
                             </TableHeader>
 
                             <TableBody>
-                                {applications.map((application) => (
-                                    <TableRow key={application.id}>
+                                {applications.map((application, position) => (
+                                    <TableRow
+                                        key={application.id}
+                                        // Only the leader of a match-sorted
+                                        // table, and only when the score is
+                                        // actually worth pointing at.
+                                        className={
+                                            sort === 'match' &&
+                                            position === 0 &&
+                                            (application.match_score ?? 0) >=
+                                                STRONG_MATCH
+                                                ? 'border-l-2 border-l-primary'
+                                                : undefined
+                                        }
+                                    >
                                         <TableCell className="pl-4 font-medium">
                                             {application.candidate.user.name}
                                         </TableCell>
