@@ -44,6 +44,9 @@ class HandleInertiaRequests extends Middleware
                     ? $request->user()->getRoleNames()
                     : [],
             ],
+            // A single COUNT scoped to the signed-in user, so guest pages never
+            // pay for it and no notification body is ever shipped to the client.
+            'unreadNotifications' => $request->user()?->unreadNotifications()->count() ?? 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

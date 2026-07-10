@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Recruiter;
 
+use App\Concerns\DispatchesNotifications;
 use App\Concerns\ScopesRecruiterJobs;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\CandidateProfile;
 use App\Models\Interview;
 use App\Models\JobPosting;
+use App\Models\User;
+use App\Notifications\InterviewScheduled;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +18,7 @@ use Inertia\Inertia;
 
 class InterviewController extends Controller
 {
+    use DispatchesNotifications;
     use ScopesRecruiterJobs;
 
     /**
@@ -36,7 +41,8 @@ class InterviewController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $application->interviews()->create([
+        /** @var Interview $interview */
+        $interview = $application->interviews()->create([
             ...$data,
             'scheduled_by' => Auth::id(),
             'status' => 'scheduled',
@@ -47,6 +53,13 @@ class InterviewController extends Controller
         if (in_array($application->status, ['pending', 'reviewed'], true)) {
             $application->update(['status' => 'interview']);
         }
+
+        /** @var CandidateProfile|null $candidate */
+        $candidate = $application->candidate;
+        /** @var User|null $recipient */
+        $recipient = $candidate?->user;
+
+        $this->notifyQuietly($recipient, new InterviewScheduled($interview));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Interview scheduled.')]);
 

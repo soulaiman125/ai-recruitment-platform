@@ -15,6 +15,7 @@ use App\Http\Controllers\Company\CompanyProfileController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboard;
 use App\Http\Controllers\Company\RecruiterController as CompanyRecruiterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Recruiter\ApplicationController as RecruiterApplicationController;
 use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
 use App\Http\Controllers\Recruiter\InterviewController as RecruiterInterviewController;
@@ -26,6 +27,12 @@ Route::inertia('/', 'welcome')->name('home');
 // كيوجّه المستخدم للـ dashboard ديالو حسب الدور
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notifications — shared by every role, so never inside a role group.
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::delete('notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     // Admin
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

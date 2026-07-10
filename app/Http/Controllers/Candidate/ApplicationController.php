@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Candidate;
 
+use App\Concerns\DispatchesNotifications;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Application;
 use App\Models\CandidateProfile;
 use App\Models\JobPosting;
+use App\Models\RecruiterProfile;
 use App\Models\Resume;
 use App\Models\User;
+use App\Notifications\NewApplicationReceived;
 use App\Services\ResumeAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +20,8 @@ use Inertia\Response;
 
 class ApplicationController extends Controller
 {
+    use DispatchesNotifications;
+
     /**
      * List the applications submitted by the authenticated candidate.
      */
@@ -67,6 +72,15 @@ class ApplicationController extends Controller
         ]);
 
         $this->scoreApplication($application, $job, $analyses);
+
+        // After scoring, so the recruiter's notification carries the match score
+        // rather than a null the analysis would have filled a moment later.
+        /** @var RecruiterProfile|null $recruiter */
+        $recruiter = $job->recruiter;
+        /** @var User|null $recipient */
+        $recipient = $recruiter?->user;
+
+        $this->notifyQuietly($recipient, new NewApplicationReceived($application));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application submitted.')]);
 

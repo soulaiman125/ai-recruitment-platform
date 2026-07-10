@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Recruiter;
 
+use App\Concerns\DispatchesNotifications;
 use App\Concerns\ScopesRecruiterJobs;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\CandidateProfile;
 use App\Models\JobPosting;
 use App\Models\Resume;
+use App\Models\User;
+use App\Notifications\ApplicationStatusChanged;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
+    use DispatchesNotifications;
     use ScopesRecruiterJobs;
 
     /**
@@ -55,7 +60,20 @@ class ApplicationController extends Controller
             'recruiter_notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        $statusChanged = $application->status !== $data['status'];
+
         $application->update($data);
+
+        // Only a real status change is worth pinging the candidate about —
+        // saving recruiter notes alone must stay silent.
+        if ($statusChanged) {
+            /** @var CandidateProfile|null $candidate */
+            $candidate = $application->candidate;
+            /** @var User|null $recipient */
+            $recipient = $candidate?->user;
+
+            $this->notifyQuietly($recipient, new ApplicationStatusChanged($application));
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application updated.')]);
 
