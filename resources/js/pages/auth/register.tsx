@@ -99,6 +99,18 @@ export default function Register({ passwordRules }: Props) {
                                 {processing && <Spinner />}
                                 Create account
                             </Button>
+
+                            <p className="text-center text-xs text-muted-foreground">
+                                By creating an account, you agree to our{' '}
+                                <TextLink href="/terms" tabIndex={6}>
+                                    Terms
+                                </TextLink>{' '}
+                                and{' '}
+                                <TextLink href="/privacy" tabIndex={6}>
+                                    Privacy Policy
+                                </TextLink>
+                                .
+                            </p>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">

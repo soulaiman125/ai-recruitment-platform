@@ -65,10 +65,18 @@ export function SiteFooter() {
                     </div>
                 </div>
 
-                <div className="mt-10 border-t border-border pt-6">
+                <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-center text-xs text-muted-foreground sm:text-left">
                         © 2026 AI Recruitment Platform. All rights reserved.
                     </p>
+                    <div className="flex justify-center gap-6 sm:justify-end">
+                        <Link href="/terms" className={linkClass}>
+                            Terms
+                        </Link>
+                        <Link href="/privacy" className={linkClass}>
+                            Privacy
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>

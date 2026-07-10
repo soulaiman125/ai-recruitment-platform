@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
+Route::inertia('/terms', 'legal/terms')->name('terms');
+Route::inertia('/privacy', 'legal/privacy')->name('privacy');
+
 // كيوجّه المستخدم للـ dashboard ديالو حسب الدور
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
