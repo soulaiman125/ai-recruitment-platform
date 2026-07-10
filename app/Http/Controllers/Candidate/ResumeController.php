@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\AnalyzeResumeJob;
 use App\Models\CandidateProfile;
 use App\Models\Resume;
+use App\Models\ResumeAnalysis;
 use App\Models\User;
-use App\Services\ResumeAnalysisException;
-use App\Services\ResumeAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -41,24 +41,36 @@ class ResumeController extends Controller
     }
 
     /**
-     * Run the configured AI provider over the given resume.
+     * Queue the configured AI provider to run over the given resume.
      */
-    public function analyze(Resume $resume, ResumeAnalysisService $analyses): RedirectResponse
+    public function analyze(Resume $resume): RedirectResponse
     {
         $this->authorizeResume($resume);
 
-        try {
-            // Synchronous on purpose: `QUEUE_CONNECTION=sync` anyway, and the
-            // candidate is sitting in front of the result. The service records
-            // `status = failed` before it rethrows, so the row stays truthful.
-            $analyses->analyze($resume);
-        } catch (ResumeAnalysisException $e) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
+        /** @var ResumeAnalysis|null $analysis */
+        $analysis = $resume->analysis;
+
+        // Defense in depth behind the rate limiter: a worker is already inside
+        // this resume, so a second job would only race it and burn an extra
+        // Gemini call. Read the row *before* creating one — a fresh row is born
+        // `pending`, and guarding on that would block a first-ever analysis.
+        if ($analysis?->status === 'processing') {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('Analysis already in progress.')]);
 
             return back();
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Resume analyzed.')]);
+        // Park the row on `pending` up front, so the table shows the queued
+        // state on the very next render — before a worker has picked it up.
+        if ($analysis === null) {
+            $resume->analysis()->create(['status' => 'pending']);
+        } else {
+            $analysis->update(['status' => 'pending']);
+        }
+
+        AnalyzeResumeJob::dispatch($resume->id);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Analysis started — this takes a few seconds.')]);
 
         return back();
     }

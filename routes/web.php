@@ -86,7 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('jobs', [JobBrowseController::class, 'index'])->name('jobs.index');
         Route::get('jobs/{job}', [JobBrowseController::class, 'show'])->name('jobs.show');
-        Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->name('jobs.apply');
+        Route::post('jobs/{job}/apply', [ApplicationController::class, 'store'])->middleware('throttle:applications')->name('jobs.apply');
         Route::post('jobs/{job}/save', [SavedJobController::class, 'store'])->name('jobs.save');
         Route::delete('jobs/{job}/save', [SavedJobController::class, 'destroy'])->name('jobs.unsave');
 
@@ -97,8 +97,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('interviews', [CandidateInterviewController::class, 'index'])->name('interviews.index');
 
         Route::get('resumes', [ResumeController::class, 'index'])->name('resumes.index');
-        Route::post('resumes', [ResumeController::class, 'store'])->name('resumes.store');
-        Route::post('resumes/{resume}/analyze', [ResumeController::class, 'analyze'])->name('resumes.analyze');
+        Route::post('resumes', [ResumeController::class, 'store'])->middleware('throttle:uploads')->name('resumes.store');
+        Route::post('resumes/{resume}/analyze', [ResumeController::class, 'analyze'])->middleware('throttle:ai-analysis')->name('resumes.analyze');
         Route::patch('resumes/{resume}/default', [ResumeController::class, 'setDefault'])->name('resumes.setDefault');
         Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
     });

@@ -6,8 +6,11 @@ use App\Services\AI\AiProvider;
 use App\Services\AI\GeminiProvider;
 use App\Services\AI\OpenAiProvider;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
@@ -28,6 +31,25 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Cap the routes that cost money or storage.
+     *
+     * Every one of these sits behind `auth`, so the user — and their id — is
+     * always present by the time the limiter runs.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('ai-analysis', fn (Request $request) => Limit::perHour(5)
+            ->by((string) $request->user()->id));
+
+        RateLimiter::for('uploads', fn (Request $request) => Limit::perHour(10)
+            ->by((string) $request->user()->id));
+
+        RateLimiter::for('applications', fn (Request $request) => Limit::perHour(20)
+            ->by((string) $request->user()->id));
     }
 
     /**

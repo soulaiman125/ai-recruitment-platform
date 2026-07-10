@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
     CircleCheck,
@@ -7,6 +7,7 @@ import {
     Sparkles,
     TriangleAlert,
 } from 'lucide-react';
+import { useEffect } from 'react';
 import ResumeController from '@/actions/App/Http/Controllers/Candidate/ResumeController';
 import EmptyState from '@/components/empty-state';
 import Heading from '@/components/heading';
@@ -502,9 +503,29 @@ function AnalysisDialog({
     );
 }
 
+/** True while a resume's analysis is queued or running on a worker. */
+function isAnalyzing(analysis: ResumeAnalysis | null): boolean {
+    return (
+        analysis !== null &&
+        (analysis.status === 'pending' || analysis.status === 'processing')
+    );
+}
+
 function AnalysisBadge({ analysis }: { analysis: ResumeAnalysis | null }) {
     if (analysis === null) {
         return <span className="text-muted-foreground">—</span>;
+    }
+
+    if (isAnalyzing(analysis)) {
+        return (
+            <Badge
+                variant={analysisStatusVariants[analysis.status]}
+                className={analysisStatusClasses[analysis.status]}
+            >
+                <Spinner className="size-3" />
+                Analyzing…
+            </Badge>
+        );
     }
 
     return (
@@ -524,6 +545,26 @@ export default function ResumesIndex({
 }: {
     resumes: ResumeWithAnalysis[];
 }) {
+    // While any resume is queued or running, poll the list every 3s so the row
+    // flips to its final state on its own. The effect re-runs on every fresh
+    // `resumes` prop: once the reload returns an all-settled list, the guard
+    // below is false, no new interval starts, and polling stops. The cleanup
+    // clears the timer on each re-run and on unmount, so exactly one interval
+    // is ever live and none leaks after leaving the page.
+    const analyzing = resumes.some((resume) => isAnalyzing(resume.analysis));
+
+    useEffect(() => {
+        if (!analyzing) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            router.reload({ only: ['resumes'] });
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [analyzing]);
+
     return (
         <>
             <Head title="Resumes" />
@@ -606,9 +647,11 @@ export default function ResumesIndex({
                                                     </a>
                                                 </Button>
 
-                                                {/* A completed analysis is worth
-                                                    reading; anything else is
-                                                    worth running or retrying. */}
+                                                {/* Completed → read it. Queued
+                                                    or running → the badge owns
+                                                    the state, so offer nothing.
+                                                    Failed or never run → run or
+                                                    retry. */}
                                                 {isCompleted(
                                                     resume.analysis,
                                                 ) ? (
@@ -618,7 +661,9 @@ export default function ResumesIndex({
                                                             resume.analysis
                                                         }
                                                     />
-                                                ) : (
+                                                ) : isAnalyzing(
+                                                      resume.analysis,
+                                                  ) ? null : (
                                                     <AnalyzeButton
                                                         resume={resume}
                                                         label={
