@@ -4,14 +4,19 @@ namespace App\Http\Controllers\Company;
 
 use App\Concerns\ResolvesOwnedCompany;
 use App\Http\Controllers\Controller;
+use App\Mail\RecruiterInvitation;
 use App\Models\RecruiterProfile;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class RecruiterController extends Controller
 {
@@ -49,13 +54,13 @@ class RecruiterController extends Controller
 
         // The user + profile are created together so a failure never leaves a
         // recruiter account without a company profile.
-        DB::transaction(function () use ($company, $data): void {
+        $user = DB::transaction(function () use ($company, $data): User {
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
-                // No mail is wired up yet (MAIL_MAILER=log), so the recruiter
-                // sets their own password through the "Forgot password" flow.
-                // The cast on User hashes this automatically.
+                // A random password is set so the account is never login-ready
+                // until the recruiter chooses their own via the reset link in
+                // their invitation. The cast on User hashes this automatically.
                 'password' => Str::random(16),
             ]);
 
@@ -65,14 +70,49 @@ class RecruiterController extends Controller
                 'user_id' => $user->id,
                 'job_title' => $data['job_title'] ?? null,
             ]);
+
+            return $user;
         });
+
+        // The invitation goes out only after the transaction commits, and a
+        // mail failure must never undo the recruiter that was just created.
+        $emailSent = $this->sendInvitation($user, $company->name);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Recruiter invited. They must use "Forgot password" to set their password.'),
+            'message' => $emailSent
+                ? __('Recruiter invited — an email was sent so they can set their password.')
+                : __('Recruiter invited, but the invitation email could not be sent. They can use "Forgot password" to set their password.'),
         ]);
 
         return back();
+    }
+
+    /**
+     * Send the invitation email carrying a password-reset link so the recruiter
+     * can set their own password. Returns whether the mail was dispatched.
+     */
+    private function sendInvitation(User $user, string $companyName): bool
+    {
+        try {
+            $token = Password::broker()->createToken($user);
+
+            Mail::to($user->email)->send(new RecruiterInvitation(
+                recruiterName: $user->name,
+                companyName: $companyName,
+                resetUrl: route('password.reset', ['token' => $token, 'email' => $user->email]),
+                loginUrl: route('login'),
+            ));
+
+            return true;
+        } catch (Throwable $e) {
+            Log::error('Failed to send recruiter invitation email.', [
+                'user_id' => $user->id,
+                'exception' => $e,
+            ]);
+
+            return false;
+        }
     }
 
     /**
