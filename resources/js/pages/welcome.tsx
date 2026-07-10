@@ -6,6 +6,7 @@ import { BentoFeatures } from '@/components/landing/bento-features';
 import { CtaSection } from '@/components/landing/cta-section';
 import { HeroSection } from '@/components/landing/hero-section';
 import { LandingNavbar } from '@/components/landing/landing-navbar';
+import { ProductTour } from '@/components/landing/product-tour';
 import { ScoreStatement } from '@/components/landing/score-statement';
 import { SiteFooter } from '@/components/landing/site-footer';
 import { TestimonialsSection } from '@/components/landing/testimonials-section';
@@ -27,6 +28,7 @@ export default function Welcome() {
                     surface, asymmetric quote, full-bleed CTA. */}
                 <main>
                     <HeroSection />
+                    <ProductTour />
                     <ScoreStatement />
                     <BentoFeatures />
                     <AnalysisPipeline />
