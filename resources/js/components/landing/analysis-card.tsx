@@ -1,17 +1,14 @@
-import { motion } from 'framer-motion';
 import { CheckCircle2, FileText, TrendingUp } from 'lucide-react';
+
+import { ScoreRing } from '@/components/landing/score-ring';
 
 const SCORE = 87;
 const skills = ['React', 'TypeScript', 'Laravel', 'AI/ML', 'SQL'];
 
-/** Circumference of the progress ring (r = 52). */
-const RADIUS = 52;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
 /**
- * A fake "AI analysis" card used purely as decorative hero art. Built
- * entirely from divs + inline SVG (no external images) so it renders
- * crisp at any size and adapts to light / dark via theme tokens.
+ * A compact "AI analysis" card used as the hero's floating art. Built entirely
+ * from divs + inline SVG (no external images) so it renders crisp at any size
+ * and adapts to light / dark via theme tokens.
  */
 export function AnalysisCard() {
     return (
@@ -31,60 +28,12 @@ export function AnalysisCard() {
             </div>
 
             <div className="mt-6 flex items-center gap-5">
-                <div className="relative size-32 shrink-0">
-                    <svg className="size-full -rotate-90" viewBox="0 0 120 120">
-                        <circle
-                            cx="60"
-                            cy="60"
-                            r={RADIUS}
-                            fill="none"
-                            strokeWidth="10"
-                            className="stroke-muted"
-                        />
-                        <motion.circle
-                            cx="60"
-                            cy="60"
-                            r={RADIUS}
-                            fill="none"
-                            strokeWidth="10"
-                            strokeLinecap="round"
-                            stroke="url(#scoreGradient)"
-                            strokeDasharray={CIRCUMFERENCE}
-                            initial={{ strokeDashoffset: CIRCUMFERENCE }}
-                            animate={{
-                                strokeDashoffset:
-                                    CIRCUMFERENCE * (1 - SCORE / 100),
-                            }}
-                            transition={{
-                                duration: 1.4,
-                                ease: [0.16, 1, 0.3, 1],
-                                delay: 0.3,
-                            }}
-                        />
-                        <defs>
-                            <linearGradient
-                                id="scoreGradient"
-                                x1="0"
-                                y1="0"
-                                x2="120"
-                                y2="120"
-                                gradientUnits="userSpaceOnUse"
-                            >
-                                <stop offset="0%" stopColor="#6366f1" />
-                                <stop offset="50%" stopColor="#8b5cf6" />
-                                <stop offset="100%" stopColor="#d946ef" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold tracking-tight">
-                            {SCORE}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                            / 100
-                        </span>
-                    </div>
-                </div>
+                <ScoreRing value={SCORE} className="size-32">
+                    <span className="text-3xl font-bold tracking-tight">
+                        {SCORE}
+                    </span>
+                    <span className="text-xs text-muted-foreground">/ 100</span>
+                </ScoreRing>
 
                 <div className="space-y-2">
                     <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
@@ -116,7 +65,7 @@ export function AnalysisCard() {
                     {skills.map((skill) => (
                         <span
                             key={skill}
-                            className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium"
+                            className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium transition-transform hover:scale-105"
                         >
                             {skill}
                         </span>

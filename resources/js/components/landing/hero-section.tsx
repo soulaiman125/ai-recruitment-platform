@@ -1,40 +1,22 @@
 import { Link } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { AnalysisCard } from '@/components/landing/analysis-card';
-import { fadeUp, staggerContainer } from '@/components/landing/animations';
+import { fadeUp, hoverLift, staggerContainer } from '@/components/landing/animations';
+import { DotGrid, GlowOrb } from '@/components/landing/background-decor';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { login, register } from '@/routes';
 
 export function HeroSection() {
+    const reduceMotion = useReducedMotion() ?? false;
+
     return (
         <section className="relative overflow-hidden">
-            {/* Faint dot grid, fading out toward the edges. Theme-aware via the
-                --border token, so it stays subtle in both light and dark. */}
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 -z-20 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_0%,black,transparent_75%)]"
-                style={{
-                    backgroundImage:
-                        'radial-gradient(circle, var(--border) 1px, transparent 1px)',
-                    backgroundSize: '28px 28px',
-                }}
-            />
-
-            {/* Soft brand glow behind the hero, purely decorative. */}
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 -top-40 -z-10 flex justify-center"
-            >
-                <div className="h-[32rem] w-[32rem] rounded-full bg-gradient-to-br from-indigo-500/20 via-violet-500/20 to-fuchsia-500/20 blur-3xl" />
-            </div>
-
-            {/* Second, tighter glow anchored behind the floating visual. */}
-            <div
-                aria-hidden
-                className="pointer-events-none absolute top-1/3 -right-24 -z-10 hidden h-96 w-96 rounded-full bg-gradient-to-br from-violet-500/25 to-fuchsia-500/20 blur-3xl lg:block"
-            />
+            <DotGrid />
+            <GlowOrb className="-top-40 left-1/2 size-[32rem] -translate-x-1/2" />
+            <GlowOrb className="top-1/3 -right-24 hidden size-96 lg:block" />
 
             <div className="mx-auto grid w-full max-w-6xl items-center gap-16 px-6 py-20 lg:grid-cols-2 lg:py-24">
                 <motion.div
@@ -74,13 +56,18 @@ export function HeroSection() {
                         variants={fadeUp}
                         className="mt-8 flex flex-col gap-3 sm:flex-row"
                     >
-                        <Button asChild size="lg">
+                        <Button asChild size="lg" className={hoverLift}>
                             <Link href={register()}>
                                 Get started
                                 <ArrowRight className="size-4" />
                             </Link>
                         </Button>
-                        <Button asChild size="lg" variant="outline">
+                        <Button
+                            asChild
+                            size="lg"
+                            variant="outline"
+                            className={hoverLift}
+                        >
                             <Link href={login()}>Sign in</Link>
                         </Button>
                     </motion.div>
@@ -98,12 +85,13 @@ export function HeroSection() {
                     className="flex justify-center lg:justify-end"
                 >
                     <motion.div
-                        animate={{ y: [0, -12, 0] }}
+                        animate={reduceMotion ? undefined : { y: [0, -6, 0] }}
                         transition={{
                             duration: 6,
                             ease: 'easeInOut',
                             repeat: Infinity,
                         }}
+                        className={cn(!reduceMotion && 'will-change-transform')}
                     >
                         <AnalysisCard />
                     </motion.div>

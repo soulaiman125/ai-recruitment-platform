@@ -43,6 +43,13 @@ export const hiddenState = { opacity: 0, y: 24 };
 export const shownState = { opacity: 1, y: 0 };
 
 /**
+ * Shared hover micro-interaction: the surface lifts a single pixel and picks up
+ * a shadow. Applied to buttons and other things that invite a click.
+ */
+export const hoverLift =
+    'transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-lg';
+
+/**
  * Drives a section's reveal from a single boolean, so every item inside it
  * animates from one source of truth instead of each element negotiating its own
  * `whileInView` observer.
@@ -90,5 +97,5 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
             ? { duration: 0 }
             : { duration: 0.5, ease: easeOut, delay: 0.06 + index * 0.09 };
 
-    return { ref, show, transition };
+    return { ref, show, transition, reduceMotion };
 }
