@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import ActivityChart from '@/components/activity-chart';
-import type {ActivityPoint} from '@/components/activity-chart';
+import type { ActivityPoint } from '@/components/activity-chart';
 import DashboardHeader from '@/components/dashboard-header';
 import StatCard from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +34,18 @@ const cards: {
     icon: LucideIcon;
     context: string;
 }[] = [
-    { key: 'users', label: 'Total Users', icon: Users, context: 'Across all roles' },
-    { key: 'companies', label: 'Companies', icon: Building2, context: 'Registered' },
+    {
+        key: 'users',
+        label: 'Total Users',
+        icon: Users,
+        context: 'Across all roles',
+    },
+    {
+        key: 'companies',
+        label: 'Companies',
+        icon: Building2,
+        context: 'Registered',
+    },
     {
         key: 'published_jobs',
         label: 'Published Jobs',

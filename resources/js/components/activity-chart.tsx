@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useId } from 'react';
 import {
     Area,
     AreaChart,
@@ -62,10 +63,16 @@ export default function ActivityChart({
     description: string;
     data: ActivityPoint[];
 }) {
+    const reducedMotion = useReducedMotion();
+
+    // Two charts can share a page, and an SVG gradient id is document-global.
+    // `useId` returns colons, which `url(#…)` will not parse — strip them.
+    const gradientId = `activity-fill-${useId().replace(/:/g, '')}`;
+
     return (
         <motion.div
             variants={fadeSlideUp}
-            initial="hidden"
+            initial={reducedMotion ? false : 'hidden'}
             animate="visible"
             className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border"
         >
@@ -74,7 +81,7 @@ export default function ActivityChart({
                 <p className="text-sm text-muted-foreground">{description}</p>
             </div>
 
-            <div className="h-56 w-full">
+            <div className="h-[260px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                         data={data}
@@ -82,7 +89,7 @@ export default function ActivityChart({
                     >
                         <defs>
                             <linearGradient
-                                id="activityFill"
+                                id={gradientId}
                                 x1="0"
                                 y1="0"
                                 x2="0"
@@ -113,7 +120,10 @@ export default function ActivityChart({
                             tickLine={false}
                             axisLine={false}
                             minTickGap={24}
-                            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                            tick={{
+                                fill: 'var(--muted-foreground)',
+                                fontSize: 11,
+                            }}
                         />
 
                         <YAxis
@@ -121,7 +131,15 @@ export default function ActivityChart({
                             width={32}
                             tickLine={false}
                             axisLine={false}
-                            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                            // A quiet fortnight is all zeros, which would
+                            // collapse the domain to [0, 0] and leave the axis
+                            // tickless. Floor the top at 1 so a flat line still
+                            // renders against a readable scale.
+                            domain={[0, (max: number) => Math.max(max, 1)]}
+                            tick={{
+                                fill: 'var(--muted-foreground)',
+                                fontSize: 11,
+                            }}
                         />
 
                         <Tooltip
@@ -134,7 +152,8 @@ export default function ActivityChart({
                             dataKey="count"
                             stroke="var(--primary)"
                             strokeWidth={2}
-                            fill="url(#activityFill)"
+                            fill={`url(#${gradientId})`}
+                            isAnimationActive={!reducedMotion}
                         />
                     </AreaChart>
                 </ResponsiveContainer>

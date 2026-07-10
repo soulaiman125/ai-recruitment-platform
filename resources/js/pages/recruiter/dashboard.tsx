@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Briefcase, CalendarCheck, FileText, Send } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import ActivityChart from '@/components/activity-chart';
-import type {ActivityPoint} from '@/components/activity-chart';
+import type { ActivityPoint } from '@/components/activity-chart';
 import DashboardHeader from '@/components/dashboard-header';
 import StatCard from '@/components/stat-card';
 import { staggerContainer } from '@/lib/motion';

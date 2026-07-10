@@ -17,17 +17,16 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
-        // Users registered per day over the last 14 days. A single query pulls
-        // the timestamps; the days are grouped and the gaps filled with zero in
+        // Users registered per day over the last 14 days. The database does the
+        // grouping and returns at most 14 rows; the gaps are filled with zero in
         // PHP so the chart receives a dense, gap-free series.
         $since = now()->startOfDay()->subDays(13);
 
         $counts = User::query()
             ->where('created_at', '>=', $since)
-            ->get(['created_at'])
-            ->groupBy(fn (User $user) => $user->created_at->toDateString())
-            ->map
-            ->count();
+            ->selectRaw('DATE(created_at) as day, COUNT(*) as aggregate')
+            ->groupBy('day')
+            ->pluck('aggregate', 'day');
 
         $usersSeries = collect(range(0, 13))
             ->map(function (int $offset) use ($since, $counts): array {
