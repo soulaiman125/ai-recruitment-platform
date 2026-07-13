@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
@@ -30,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
+
         $this->configureDefaults();
         $this->configureRateLimiting();
     }
@@ -53,8 +58,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Resolve the AI vendor named by `AI_PROVIDER`. Everything downstream only
-     * ever type-hints the interface, so swapping vendors is a one-line change.
+     * Resolve the AI vendor named by `AI_PROVIDER`.
      */
     protected function registerAiProvider(): void
     {
@@ -64,10 +68,11 @@ class AppServiceProvider extends ServiceProvider
             return match ($provider) {
                 'gemini' => new GeminiProvider,
                 'openai' => new OpenAiProvider,
-                // A typo in `.env` must fail loudly at boot, never silently
-                // fall back to a vendor the operator did not ask for.
                 default => throw new InvalidArgumentException(
-                    sprintf('Unsupported AI_PROVIDER [%s]. Expected "gemini" or "openai".', is_string($provider) ? $provider : gettype($provider))
+                    sprintf(
+                        'Unsupported AI_PROVIDER [%s]. Expected "gemini" or "openai".',
+                        is_string($provider) ? $provider : gettype($provider)
+                    )
                 ),
             };
         });
