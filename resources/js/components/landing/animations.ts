@@ -47,7 +47,11 @@ export const shownState = { opacity: 1, y: 0 };
  * a shadow. Applied to buttons and other things that invite a click.
  */
 export const hoverLift =
-    'transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-lg';
+    'transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 motion-reduce:transform-none';
+
+/** Shared surface treatment for cards that are deliberately interactive. */
+export const interactiveSurface =
+    'transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:scale-[1.01] hover:border-primary/25 hover:shadow-xl hover:shadow-primary/10 motion-reduce:transform-none';
 
 /**
  * Drives a section's reveal from a single boolean, so every item inside it

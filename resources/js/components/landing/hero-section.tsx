@@ -1,15 +1,14 @@
-import { Link } from '@inertiajs/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { AnalysisCard } from '@/components/landing/analysis-card';
+import { fadeUp, staggerContainer } from '@/components/landing/animations';
 import {
-    fadeUp,
-    hoverLift,
-    staggerContainer,
-} from '@/components/landing/animations';
-import { DotGrid, GlowOrb } from '@/components/landing/background-decor';
-import { Button } from '@/components/ui/button';
+    DotGrid,
+    GlowOrb,
+    NoiseTexture,
+} from '@/components/landing/background-decor';
+import { LandingLinkButton } from '@/components/landing/landing-link-button';
 import { cn } from '@/lib/utils';
 import { login, register } from '@/routes';
 
@@ -19,6 +18,7 @@ export function HeroSection() {
     return (
         <section className="relative overflow-hidden">
             <DotGrid />
+            <NoiseTexture />
             <GlowOrb className="-top-40 left-1/2 size-[32rem] -translate-x-1/2" />
             <GlowOrb className="top-1/3 -right-24 hidden size-96 lg:block" />
 
@@ -60,20 +60,17 @@ export function HeroSection() {
                         variants={fadeUp}
                         className="mt-8 flex flex-col gap-3 sm:flex-row"
                     >
-                        <Button asChild size="lg" className={hoverLift}>
-                            <Link href={register()}>
-                                Get started
-                                <ArrowRight className="size-4" />
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
+                        <LandingLinkButton size="lg" href={register()}>
+                            Get started
+                            <ArrowRight className="size-4" />
+                        </LandingLinkButton>
+                        <LandingLinkButton
                             size="lg"
                             variant="outline"
-                            className={hoverLift}
+                            href={login()}
                         >
-                            <Link href={login()}>Sign in</Link>
-                        </Button>
+                            Sign in
+                        </LandingLinkButton>
                     </motion.div>
                 </motion.div>
 

@@ -1,27 +1,25 @@
 import { motion } from 'framer-motion';
-import {
-    AlertTriangle,
-    ArrowRight,
-    CheckCircle2,
-    FileText,
-    Sparkles,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
 
+import {
+    LiveAnalysisStatus,
+    LiveRecommendations,
+    LiveScore,
+    LiveSkills,
+    LiveSummary,
+    useLiveAnalysis,
+} from '@/components/landing/analysis-live-demo';
 import {
     hiddenState,
     shownState,
     useReveal,
 } from '@/components/landing/animations';
 import { GlowOrb } from '@/components/landing/background-decor';
-import { CountUpNumber } from '@/components/landing/count-up-number';
-import { ScoreRing } from '@/components/landing/score-ring';
 
 /**
  * Demo data, written the way the model actually reports: prose about a person,
  * not metrics about a business.
  */
-const SCORE = 91;
-
 const analysis = {
     file: 'amelia_dubois_resume.pdf',
     role: 'Senior Frontend Engineer',
@@ -55,6 +53,7 @@ const analysis = {
 
 export function AnalysisShowcase() {
     const { ref, show, transition, reduceMotion } = useReveal<HTMLElement>();
+    const liveAnalysis = useLiveAnalysis({ active: show });
 
     return (
         <section ref={ref} className="relative py-20 lg:py-28">
@@ -113,51 +112,30 @@ export function AnalysisShowcase() {
                                         </p>
                                     </div>
                                 </div>
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-600 dark:text-violet-300">
-                                    <Sparkles className="size-3.5" />
-                                    Analysis complete
-                                </span>
+                                <LiveAnalysisStatus
+                                    analysis={liveAnalysis}
+                                    compact
+                                    className="w-44"
+                                />
                             </div>
 
                             <div className="grid gap-10 pt-8 lg:grid-cols-[15rem_1fr] lg:gap-14">
                                 {/* Left rail: the verdict. */}
                                 <div className="flex flex-col items-center gap-6 lg:items-start">
-                                    <ScoreRing
-                                        value={SCORE}
-                                        play={show}
-                                        reduceMotion={reduceMotion}
-                                        delay={0.4}
+                                    <LiveScore
+                                        analysis={liveAnalysis}
                                         className="size-40"
-                                    >
-                                        <span className="text-4xl font-bold tracking-tight tabular-nums">
-                                            {show ? (
-                                                <CountUpNumber
-                                                    value={SCORE}
-                                                    duration={1.4}
-                                                />
-                                            ) : (
-                                                0
-                                            )}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                            / 100
-                                        </span>
-                                    </ScoreRing>
+                                    />
 
                                     <div className="w-full">
                                         <p className="mb-2.5 text-xs font-medium text-muted-foreground">
                                             Detected skills
                                         </p>
-                                        <div className="flex flex-wrap justify-center gap-1.5 lg:justify-start">
-                                            {analysis.skills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="cursor-default rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium transition-transform duration-200 hover:scale-105"
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
+                                        <LiveSkills
+                                            analysis={liveAnalysis}
+                                            skills={analysis.skills}
+                                            className="justify-center lg:justify-start"
+                                        />
                                     </div>
                                 </div>
 
@@ -167,9 +145,10 @@ export function AnalysisShowcase() {
                                         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                             Summary
                                         </p>
-                                        <p className="mt-3 text-sm leading-relaxed text-pretty text-foreground/90">
-                                            {analysis.summary}
-                                        </p>
+                                        <LiveSummary
+                                            analysis={liveAnalysis}
+                                            className="mt-3 text-sm leading-relaxed text-pretty text-foreground/90"
+                                        />
                                     </div>
 
                                     <div className="grid gap-8 sm:grid-cols-2">
@@ -214,19 +193,10 @@ export function AnalysisShowcase() {
                                         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                             Recommendations
                                         </p>
-                                        <ul className="mt-3 space-y-2.5">
-                                            {analysis.recommendations.map(
-                                                (recommendation) => (
-                                                    <li
-                                                        key={recommendation}
-                                                        className="flex gap-2.5 text-sm text-pretty text-foreground/90"
-                                                    >
-                                                        <ArrowRight className="mt-0.5 size-4 shrink-0 text-violet-500" />
-                                                        {recommendation}
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
+                                        <LiveRecommendations
+                                            analysis={liveAnalysis}
+                                            className="mt-3 space-y-2.5"
+                                        />
                                     </div>
                                 </div>
                             </div>

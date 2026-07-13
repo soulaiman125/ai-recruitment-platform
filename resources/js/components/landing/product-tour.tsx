@@ -9,22 +9,24 @@ import { CalendarDays, FileText } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+    LIVE_ANALYSIS_CYCLE_MS,
+    LiveAnalysisStatus,
+    LiveScore,
+    LiveSkills,
+    useLiveAnalysis,
+} from '@/components/landing/analysis-live-demo';
+import {
     hiddenState,
+    interactiveSurface,
     shownState,
     useReveal,
 } from '@/components/landing/animations';
+
 import { GlowOrb } from '@/components/landing/background-decor';
-import { CountUpNumber } from '@/components/landing/count-up-number';
-import { ScoreRing } from '@/components/landing/score-ring';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 /** How long each scene holds before the tour advances, in milliseconds. */
-const SCENE_MS = 4000;
-
-const SCORE = 87;
-
-const skills = ['React', 'TypeScript', 'Laravel', 'PostgreSQL', 'Docker'];
+const DEFAULT_SCENE_MS = 4000;
 
 const applicants = [
     { initials: 'AD', name: 'A. Dubois', match: 91 },
@@ -48,67 +50,35 @@ const timing = (reduceMotion: boolean, value: number) =>
 
 /* -------------------------------------------------------------------------- */
 
-/** Scene 1 — the resume lands, the score sweeps, the skills surface. */
+/** Scene 1 — a live analysis progresses through each model step. */
 function AnalyzeScene({ reduceMotion }: SceneProps) {
+    const analysis = useLiveAnalysis({ active: !reduceMotion });
+
     return (
         <div className="flex h-full flex-col gap-5">
             <div className="flex items-center gap-3 rounded-lg border bg-background/60 p-3">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <FileText className="size-4" />
                 </div>
-
-                <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                        candidate_resume.pdf
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        Parsed and sent to the model
-                    </p>
-                </div>
+                <LiveAnalysisStatus analysis={analysis} compact />
             </div>
 
-            <div className="flex flex-1 flex-col items-center gap-5 sm:flex-row sm:gap-6">
-                <ScoreRing
-                    value={SCORE}
-                    reduceMotion={reduceMotion}
-                    delay={timing(reduceMotion, 0.2)}
+            <div className="flex flex-1 items-center gap-5 sm:gap-6">
+                <LiveScore
+                    analysis={analysis}
                     strokeWidth={9}
-                    className="size-24 sm:size-28"
-                >
-                    <span className="text-2xl font-bold tracking-tight">
-                        <CountUpNumber
-                            value={SCORE}
-                            duration={timing(reduceMotion, 1.2)}
-                        />
-                    </span>
-                    <span className="text-[10px] tracking-wide text-muted-foreground uppercase">
-                        Match
-                    </span>
-                </ScoreRing>
+                    className="size-24 shrink-0 sm:size-28"
+                />
 
                 <div className="min-w-0 flex-1">
-                    <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">
+                    <LiveAnalysisStatus
+                        analysis={analysis}
+                        className="space-y-1.5"
+                    />
+                    <p className="mt-3 text-xs tracking-wide text-muted-foreground uppercase">
                         Skills detected
                     </p>
-
-                    <div className="flex flex-wrap gap-1.5">
-                        {skills.map((skill, index) => (
-                            <motion.span
-                                key={skill}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                    duration: timing(reduceMotion, 0.35),
-                                    delay: timing(
-                                        reduceMotion,
-                                        0.45 + index * 0.1,
-                                    ),
-                                }}
-                            >
-                                <Badge variant="secondary">{skill}</Badge>
-                            </motion.span>
-                        ))}
-                    </div>
+                    <LiveSkills analysis={analysis} className="mt-2" />
                 </div>
             </div>
         </div>
@@ -289,6 +259,8 @@ export function ProductTour() {
 
     const [active, setActive] = useState(0);
     const [hovered, setHovered] = useState(false);
+    const sceneDuration =
+        active === 0 ? LIVE_ANALYSIS_CYCLE_MS : DEFAULT_SCENE_MS;
 
     // Progress rides a motion value rather than React state: the bar repaints
     // on the compositor every frame without re-rendering the section.
@@ -310,7 +282,7 @@ export function ProductTour() {
 
         elapsed.current += delta;
 
-        const fraction = Math.min(1, elapsed.current / SCENE_MS);
+        const fraction = Math.min(1, elapsed.current / sceneDuration);
 
         progress.set(fraction);
 
@@ -352,7 +324,10 @@ export function ProductTour() {
                         ref={frameRef}
                         onMouseEnter={() => setHovered(true)}
                         onMouseLeave={() => setHovered(false)}
-                        className="relative overflow-hidden rounded-xl border bg-card shadow-lg"
+                        className={cn(
+                            'relative overflow-hidden rounded-xl border bg-card shadow-lg',
+                            interactiveSurface,
+                        )}
                     >
                         {/* Browser chrome, purely decorative. */}
                         <div

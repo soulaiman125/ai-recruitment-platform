@@ -48,3 +48,24 @@ export function GlowOrb({ className }: { className?: string }) {
         />
     );
 }
+
+/**
+ * A nearly imperceptible grain layer that keeps large white surfaces from
+ * feeling flat. It is static and pointer-free, so it has no runtime cost.
+ */
+export function NoiseTexture({ className }: { className?: string }) {
+    return (
+        <div
+            aria-hidden
+            className={cn(
+                'pointer-events-none absolute inset-0 -z-10 opacity-[0.025] mix-blend-multiply dark:mix-blend-soft-light',
+                className,
+            )}
+            style={{
+                backgroundImage:
+                    'url("data:image/svg+xml,%3Csvg viewBox=%270 0 180 180%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%271.1%27 numOctaves=%274%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%271%27/%3E%3C/svg%3E")',
+                backgroundSize: '180px 180px',
+            }}
+        />
+    );
+}

@@ -1,5 +1,11 @@
 import { Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 
+import {
+    hiddenState,
+    shownState,
+    useReveal,
+} from '@/components/landing/animations';
 import { LogoMark } from '@/components/landing/logo-mark';
 import { login, register } from '@/routes';
 
@@ -17,8 +23,16 @@ const linkClass =
     'text-sm text-muted-foreground transition-colors hover:text-foreground';
 
 export function SiteFooter() {
+    const { ref, show, transition } = useReveal<HTMLElement>();
+
     return (
-        <footer className="border-t border-border py-12">
+        <motion.footer
+            ref={ref}
+            initial={hiddenState}
+            animate={show ? shownState : hiddenState}
+            transition={transition(0)}
+            className="border-t border-border py-12"
+        >
             <div className="mx-auto w-full max-w-6xl px-6">
                 <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
                     <div className="flex items-center gap-3">
@@ -39,7 +53,10 @@ export function SiteFooter() {
                             <ul className="mt-3 space-y-2">
                                 {anchorLinks.map((link) => (
                                     <li key={link.label}>
-                                        <a href={link.href} className={linkClass}>
+                                        <a
+                                            href={link.href}
+                                            className={linkClass}
+                                        >
                                             {link.label}
                                         </a>
                                     </li>
@@ -79,6 +96,6 @@ export function SiteFooter() {
                     </div>
                 </div>
             </div>
-        </footer>
+        </motion.footer>
     );
 }

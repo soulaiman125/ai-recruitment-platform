@@ -1,15 +1,13 @@
-import { Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
 import {
     hiddenState,
-    hoverLift,
     shownState,
     useReveal,
 } from '@/components/landing/animations';
 import { DotGrid, GlowOrb } from '@/components/landing/background-decor';
-import { Button } from '@/components/ui/button';
+import { LandingLinkButton } from '@/components/landing/landing-link-button';
 import { cn } from '@/lib/utils';
 import { register } from '@/routes';
 
@@ -49,19 +47,16 @@ export function CtaSection() {
                             rank candidates for you — from day one.
                         </p>
                         <div className="mt-8 flex justify-center">
-                            <Button
-                                asChild
+                            <LandingLinkButton
                                 size="lg"
+                                href={register()}
                                 className={cn(
                                     'bg-white text-violet-700 hover:bg-white/90',
-                                    hoverLift,
                                 )}
                             >
-                                <Link href={register()}>
-                                    Get started for free
-                                    <ArrowRight className="size-4" />
-                                </Link>
-                            </Button>
+                                Get started for free
+                                <ArrowRight className="size-4" />
+                            </LandingLinkButton>
                         </div>
                     </div>
                 </motion.div>

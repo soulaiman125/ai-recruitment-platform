@@ -1,59 +1,50 @@
-import { CheckCircle2, FileText, TrendingUp } from 'lucide-react';
+import { FileText, TrendingUp } from 'lucide-react';
 
-import { ScoreRing } from '@/components/landing/score-ring';
-
-const SCORE = 87;
-const skills = ['React', 'TypeScript', 'Laravel', 'AI/ML', 'SQL'];
+import {
+    LiveAnalysisStatus,
+    LiveScore,
+    LiveSkills,
+    useLiveAnalysis,
+} from '@/components/landing/analysis-live-demo';
+import { interactiveSurface } from '@/components/landing/animations';
+import { cn } from '@/lib/utils';
 
 /**
- * A compact "AI analysis" card used as the hero's floating art. Built entirely
- * from divs + inline SVG (no external images) so it renders crisp at any size
- * and adapts to light / dark via theme tokens.
+ * A compact live analysis preview for the hero. It shares the same product
+ * state machine as the larger recruiter-facing previews below the fold.
  */
 export function AnalysisCard() {
+    const analysis = useLiveAnalysis();
+
     return (
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl shadow-black/5 dark:shadow-black/40">
+        <div
+            className={cn(
+                'w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl shadow-black/5 dark:shadow-black/40',
+                interactiveSurface,
+            )}
+        >
             <div className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
                     <FileText className="size-5 text-muted-foreground" />
                 </div>
-                <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">
-                        candidate_resume.pdf
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        Analyzed by AI · just now
-                    </p>
-                </div>
+                <LiveAnalysisStatus analysis={analysis} compact />
             </div>
 
             <div className="mt-6 flex items-center gap-5">
-                <ScoreRing value={SCORE} className="size-32">
-                    <span className="text-3xl font-bold tracking-tight">
-                        {SCORE}
-                    </span>
-                    <span className="text-xs text-muted-foreground">/ 100</span>
-                </ScoreRing>
+                <LiveScore analysis={analysis} className="size-32" />
 
                 <div className="space-y-2">
                     <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                         <TrendingUp className="size-4" />
-                        Strong match
+                        {analysis.isComplete
+                            ? 'Strong match'
+                            : 'Analysis in progress'}
                     </div>
-                    <ul className="space-y-1.5 text-xs text-muted-foreground">
-                        <li className="flex items-center gap-1.5">
-                            <CheckCircle2 className="size-3.5 text-emerald-500" />
-                            5 years experience
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                            <CheckCircle2 className="size-3.5 text-emerald-500" />
-                            Skills aligned
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                            <CheckCircle2 className="size-3.5 text-emerald-500" />
-                            Role-ready
-                        </li>
-                    </ul>
+                    <p className="max-w-32 text-xs leading-relaxed text-muted-foreground">
+                        {analysis.isScoreReady
+                            ? 'Match score calibrated against this role.'
+                            : 'Experience and skills are being evaluated.'}
+                    </p>
                 </div>
             </div>
 
@@ -61,16 +52,7 @@ export function AnalysisCard() {
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                     Detected skills
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                    {skills.map((skill) => (
-                        <span
-                            key={skill}
-                            className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium transition-transform hover:scale-105"
-                        >
-                            {skill}
-                        </span>
-                    ))}
-                </div>
+                <LiveSkills analysis={analysis} />
             </div>
         </div>
     );

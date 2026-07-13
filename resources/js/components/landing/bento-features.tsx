@@ -12,16 +12,19 @@ import {
 import type { ReactNode } from 'react';
 
 import {
+    LiveAnalysisStatus,
+    LiveScore,
+    LiveSkills,
+    useLiveAnalysis,
+} from '@/components/landing/analysis-live-demo';
+import {
     hiddenState,
+    interactiveSurface,
     shownState,
     useReveal,
 } from '@/components/landing/animations';
-import { CountUpNumber } from '@/components/landing/count-up-number';
-import { ScoreRing } from '@/components/landing/score-ring';
-import { cn } from '@/lib/utils';
 
-const DEMO_SCORE = 87;
-const demoSkills = ['React', 'TypeScript', 'Laravel', 'AI/ML', 'SQL', 'Docker'];
+import { cn } from '@/lib/utils';
 
 /** Illustrative ranking, the way a recruiter would see a shortlist ordered. */
 const rankedCandidates = [
@@ -54,7 +57,8 @@ function Tile({
     return (
         <div
             className={cn(
-                'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-[border-color,box-shadow] duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5',
+                'group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6',
+                interactiveSurface,
                 className,
             )}
         >
@@ -82,6 +86,7 @@ function TileHeading({
 
 export function BentoFeatures() {
     const { ref, show, transition, reduceMotion } = useReveal<HTMLElement>();
+    const analysis = useLiveAnalysis({ active: show });
 
     return (
         <section
@@ -128,72 +133,29 @@ export function BentoFeatures() {
 
                             <div className="mt-8 flex flex-1 flex-col justify-end">
                                 <div className="flex flex-wrap items-center gap-6">
-                                    <ScoreRing
-                                        value={DEMO_SCORE}
-                                        play={show}
-                                        reduceMotion={reduceMotion}
-                                        delay={0.35}
+                                    <LiveScore
+                                        analysis={analysis}
                                         strokeWidth={9}
                                         className="size-28"
-                                    >
-                                        <span className="text-2xl font-bold tracking-tight tabular-nums">
-                                            {show ? (
-                                                <CountUpNumber
-                                                    value={DEMO_SCORE}
-                                                    duration={1.4}
-                                                />
-                                            ) : (
-                                                0
-                                            )}
-                                        </span>
-                                        <span className="text-[0.65rem] text-muted-foreground">
-                                            / 100
-                                        </span>
-                                    </ScoreRing>
+                                    />
 
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                             <FileText className="size-3.5" />
                                             candidate_resume.pdf
                                         </div>
+                                        <LiveAnalysisStatus
+                                            analysis={analysis}
+                                            compact
+                                            className="mt-3"
+                                        />
                                         <p className="mt-3 text-xs font-medium text-muted-foreground">
                                             Detected skills
                                         </p>
-                                        <div className="mt-2 flex flex-wrap gap-1.5">
-                                            {demoSkills.map((skill, index) => (
-                                                // The reveal and the hover live
-                                                // on separate elements: framer
-                                                // owns the outer transform, so a
-                                                // `hover:scale` class there would
-                                                // be overwritten inline.
-                                                <motion.span
-                                                    key={skill}
-                                                    initial={{
-                                                        opacity: 0,
-                                                        scale: 0.9,
-                                                    }}
-                                                    animate={
-                                                        show
-                                                            ? {
-                                                                  opacity: 1,
-                                                                  scale: 1,
-                                                              }
-                                                            : {
-                                                                  opacity: 0,
-                                                                  scale: 0.9,
-                                                              }
-                                                    }
-                                                    transition={transition(
-                                                        4 + index,
-                                                    )}
-                                                    className="inline-flex"
-                                                >
-                                                    <span className="cursor-default rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium transition-transform duration-200 hover:scale-105">
-                                                        {skill}
-                                                    </span>
-                                                </motion.span>
-                                            ))}
-                                        </div>
+                                        <LiveSkills
+                                            analysis={analysis}
+                                            className="mt-2"
+                                        />
                                     </div>
                                 </div>
                             </div>
