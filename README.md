@@ -44,7 +44,7 @@ AI Recruitment Platform is an AI-assisted recruitment application that connects 
 | Auth & roles | Laravel Fortify + Spatie Laravel-Permission |
 | AI | Google Gemini (pluggable provider) |
 | Queue | Database queue |
-| Email | SMTP (Brevo) |
+| Email | Brevo HTTP API |
 | Build tooling | Vite |
 
 ## How the AI works
@@ -124,8 +124,8 @@ composer run dev
 | `AI_PROVIDER` | Which AI provider to use: `gemini` (default) or `openai`. |
 | `GEMINI_API_KEY` | API key for Google Gemini (required when `AI_PROVIDER=gemini`). |
 | `OPENAI_API_KEY` | API key for OpenAI (required when `AI_PROVIDER=openai`). |
-| `MAIL_MAILER` | Mail transport — `log` for local, `smtp` for real delivery. |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` | SMTP server and credentials. |
+| `MAIL_MAILER` | Mail transport — `log` for local, `brevo` for real delivery. |
+| `BREVO_API_KEY` | Brevo v3 API key used for HTTPS email delivery. |
 | `MAIL_FROM_ADDRESS` / `MAIL_FROM_NAME` | Default sender identity for outgoing mail. |
 | `QUEUE_CONNECTION` | Queue backend — `database`. Requires a running queue worker. |
 

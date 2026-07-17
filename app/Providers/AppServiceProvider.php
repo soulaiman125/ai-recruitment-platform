@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\BrevoTransport;
 use App\Services\AI\AiProvider;
 use App\Services\AI\GeminiProvider;
 use App\Services\AI\OpenAiProvider;
@@ -10,6 +11,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -31,6 +33,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Mail::extend('brevo', function (array $config): BrevoTransport {
+            $key = $config['key'] ?? null;
+
+            if (! is_string($key) || $key === '') {
+                throw new InvalidArgumentException('BREVO_API_KEY is not set.');
+            }
+
+            return new BrevoTransport($key, (int) ($config['timeout'] ?? 30));
+        });
+
         if (app()->isProduction()) {
             URL::forceScheme('https');
         }
