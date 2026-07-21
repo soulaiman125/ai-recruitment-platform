@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\JobPostingController as AdminJobPostingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Candidate\AiCoachController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboard;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
@@ -104,6 +105,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('resumes/{resume}/analyze', [ResumeController::class, 'analyze'])->middleware('throttle:ai-analysis')->name('resumes.analyze');
         Route::patch('resumes/{resume}/default', [ResumeController::class, 'setDefault'])->name('resumes.setDefault');
         Route::delete('resumes/{resume}', [ResumeController::class, 'destroy'])->name('resumes.destroy');
+
+        // AI Coach (Sprint 1: page bghir logic, POST /ask ghadi tzad f Sprint 2)
+        Route::get('ai-coach', [AiCoachController::class, 'index'])->name('ai-coach.index');
     });
 });
 

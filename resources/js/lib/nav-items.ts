@@ -1,5 +1,6 @@
 import {
     Bookmark,
+    Bot,
     Briefcase,
     Building2,
     CalendarDays,
@@ -20,6 +21,7 @@ import { index as candidateJobs } from '@/routes/candidate/jobs';
 import { edit as candidateProfile } from '@/routes/candidate/profile';
 import { index as candidateResumes } from '@/routes/candidate/resumes';
 import { index as candidateSavedJobs } from '@/routes/candidate/saved-jobs';
+import { index as candidateAiCoach } from '@/routes/candidate/ai-coach';
 import { edit as companyProfile } from '@/routes/company/profile';
 import { index as companyRecruiters } from '@/routes/company/recruiters';
 import { index as recruiterJobs } from '@/routes/recruiter/jobs';
@@ -64,6 +66,11 @@ export const navItemsByRole: Record<string, NavItem[]> = {
             icon: CalendarDays,
         },
         { title: 'Resumes', href: candidateResumes(), icon: FileUp },
+        {
+    title: 'AI Career Coach',
+    href: candidateAiCoach(),
+    icon: Bot,
+},
     ],
 };
 
