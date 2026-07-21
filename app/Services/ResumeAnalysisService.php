@@ -154,6 +154,54 @@ class ResumeAnalysisService
         ];
     }
 
+    /**
+     * Compute match details for multiple job postings at once against a single resume.
+     *
+     * @param  Resume  $resume
+     * @param  iterable<JobPosting>  $jobs
+     * @return array<int, array{score:int,matched_skills:list<string>,missing_skills:list<string>,extra_skills:list<string>,explanation:string}|null>
+     */
+    public function batchMatchDetails(Resume $resume, iterable $jobs): array
+    {
+        $analysis = $resume->analysis;
+
+        if ($analysis?->status !== 'completed') {
+            return [];
+        }
+
+        $candidateSkills = $this->normalizedSkills($analysis->extracted_skills);
+        $results = [];
+
+        foreach ($jobs as $job) {
+            $jobSkills = $this->normalizedSkills($job->skills);
+
+            if ($jobSkills === []) {
+                $results[$job->id] = null;
+                continue;
+            }
+
+            $matched = array_values(array_intersect($jobSkills, $candidateSkills));
+            $missing = array_values(array_diff($jobSkills, $candidateSkills));
+            $extra = array_values(array_diff($candidateSkills, $jobSkills));
+            $score = (int) round(count($matched) / count($jobSkills) * 100);
+
+            $results[$job->id] = [
+                'score' => $score,
+                'matched_skills' => $matched,
+                'missing_skills' => $missing,
+                'extra_skills' => array_slice($extra, 0, 10),
+                'explanation' => $missing === []
+                    ? __('Your analyzed resume covers every skill explicitly listed for this role.')
+                    : __('Your strongest overlap is :skills. Build evidence for :missing next.', [
+                        'skills' => $matched === [] ? __('no explicitly listed skills') : implode(', ', $matched),
+                        'missing' => implode(', ', $missing),
+                    ]),
+            ];
+        }
+
+        return $results;
+    }
+
     /** @param mixed $skills @return list<string> */
     private function normalizedSkills(mixed $skills): array
     {

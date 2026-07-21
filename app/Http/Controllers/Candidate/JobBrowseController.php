@@ -58,7 +58,21 @@ class JobBrowseController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $profile = $user->candidateProfile;
+        $profile = $user ? $user->candidateProfile : null;
+
+        $resume = $profile?->resumes()->with('analysis')
+            ->orderByDesc('is_default')
+            ->latest()
+            ->first();
+
+        $aiMatches = [];
+        if ($resume !== null) {
+            $aiMatches = $this->analyses->batchMatchDetails($resume, $jobs);
+        }
+
+        foreach ($jobs as $job) {
+            $job->setAttribute('ai_match', $aiMatches[$job->id] ?? null);
+        }
 
         return Inertia::render('candidate/jobs/index', [
             'jobs' => $jobs,
@@ -75,6 +89,7 @@ class JobBrowseController extends Controller
                 'work_mode' => $workMode,
                 'experience_level' => $experienceLevel,
             ],
+            'aiMatches' => $aiMatches,
         ]);
     }
 
