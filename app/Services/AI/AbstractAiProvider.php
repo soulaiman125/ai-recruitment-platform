@@ -50,6 +50,11 @@ abstract class AbstractAiProvider implements AiProvider
         return $this->toScore($decoded['match_score'] ?? null);
     }
 
+    public function completeJson(string $prompt): array
+    {
+        return $this->decodeJson($this->complete($prompt));
+    }
+
     /**
      * The analysis prompt. Three things keep the output parseable: the response
      * is pinned to one JSON object, every key is declared mandatory (so we never

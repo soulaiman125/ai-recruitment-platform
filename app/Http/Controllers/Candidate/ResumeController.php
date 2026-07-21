@@ -16,9 +16,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\AI\Memory\MemoryService;
 
 class ResumeController extends Controller
 {
+    public function __construct(
+        private readonly MemoryService $memoryService
+    ) {}
     /**
      * List the resumes owned by the authenticated candidate.
      */
@@ -76,41 +80,52 @@ class ResumeController extends Controller
     }
 
     /**
-     * Store a newly uploaded resume for the authenticated candidate.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $profile = $this->candidateProfile();
+ * Store a newly uploaded resume for the authenticated candidate.
+ */
+public function store(Request $request): RedirectResponse
+{
+    $profile = $this->candidateProfile();
 
-        $data = $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'title' => ['nullable', 'string', 'max:255'],
-        ]);
+    $data = $request->validate([
+        'file' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+        'title' => ['nullable', 'string', 'max:255'],
+    ]);
 
-        /** @var UploadedFile $file */
-        $file = $request->file('file');
+    /** @var UploadedFile $file */
+    $file = $request->file('file');
 
-        // Count before the insert, otherwise the new row makes this false.
-        $isFirst = ! $profile->resumes()->exists();
+    $isFirst = ! $profile->resumes()->exists();
 
-        // store() hashes the name, so two candidates uploading "cv.pdf" never
-        // collide, and the stored name is never attacker controlled.
-        $path = $file->store("resumes/{$profile->id}", 'public');
+    $path = $file->store("resumes/{$profile->id}", 'public');
 
-        $profile->resumes()->create([
-            'title' => $data['title'] ?? null,
-            'file_path' => $path,
-            'original_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getClientMimeType(),
-            'file_size' => $file->getSize(),
-            // The first resume a candidate uploads becomes their default one.
-            'is_default' => $isFirst,
-        ]);
+    $resume = $profile->resumes()->create([
+        'title' => $data['title'] ?? null,
+        'file_path' => $path,
+        'original_name' => $file->getClientOriginalName(),
+        'mime_type' => $file->getClientMimeType(),
+        'file_size' => $file->getSize(),
+        'is_default' => $isFirst,
+    ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Resume uploaded.')]);
+    $this->memoryService->remember(
+        candidateId: Auth::id(),
+        category: 'RESUME',
+        title: 'Resume Uploaded',
+        content: 'Uploaded resume: '.$resume->original_name,
+        importance: 8,
+        metadata: [
+            'resume_id' => $resume->id,
+            'default' => $resume->is_default,
+        ],
+    );
 
-        return back();
-    }
+    Inertia::flash('toast', [
+        'type' => 'success',
+        'message' => __('Resume uploaded.'),
+    ]);
+
+    return back();
+}
 
     /**
      * Promote the given resume to the candidate's default one.

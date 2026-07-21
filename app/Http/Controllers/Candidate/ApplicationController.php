@@ -16,11 +16,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\AI\Memory\MemoryService;
 
 class ApplicationController extends Controller
 {
     use DispatchesNotifications;
 
+    public function __construct(
+        private readonly MemoryService $memoryService
+    ) {}
     /**
      * List the applications submitted by the authenticated candidate.
      */
@@ -83,6 +87,19 @@ class ApplicationController extends Controller
         $recipient = $recruiter?->user;
 
         $this->notifyQuietly($recipient, new NewApplicationReceived($application));
+
+                    $this->memoryService->remember(
+                candidateId: Auth::id(),
+                category: 'APPLICATION',
+                title: 'Job Application Submitted',
+                content: 'Applied for: '.$job->title,
+                importance: 9,
+                metadata: [
+                    'application_id' => $application->id,
+                    'job_posting_id' => $job->id,
+                    'status' => $application->status,
+                ],
+            );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application submitted.')]);
 

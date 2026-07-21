@@ -52,6 +52,11 @@ class ResumeAnalysisService
                 'status' => 'completed',
                 'analyzed_at' => now(),
             ]);
+
+            event(new \App\Events\ResumeAnalysisCompleted(
+                $resume,
+                $analysis->fresh(),
+            ));
         } catch (Throwable $e) {
             // The row records the attempt so the UI can offer a retry, and the
             // real cause goes to the log rather than to the candidate.
@@ -108,6 +113,56 @@ class ResumeAnalysisService
 
             return null;
         }
+    }
+    /**
+     * Explain a job match from persisted analysis data without another paid
+     * model call. The application queue still owns the authoritative AI score.
+     *
+     * @return array{score:int,matched_skills:list<string>,missing_skills:list<string>,extra_skills:list<string>,explanation:string}|null
+     */
+    public function matchDetails(Resume $resume, JobPosting $job): ?array
+    {
+        $analysis = $resume->analysis;
+
+        if ($analysis?->status !== 'completed') {
+            return null;
+        }
+
+        $candidateSkills = $this->normalizedSkills($analysis->extracted_skills);
+        $jobSkills = $this->normalizedSkills($job->skills);
+
+        if ($jobSkills === []) {
+            return null;
+        }
+
+        $matched = array_values(array_intersect($jobSkills, $candidateSkills));
+        $missing = array_values(array_diff($jobSkills, $candidateSkills));
+        $extra = array_values(array_diff($candidateSkills, $jobSkills));
+        $score = (int) round(count($matched) / count($jobSkills) * 100);
+
+        return [
+            'score' => $score,
+            'matched_skills' => $matched,
+            'missing_skills' => $missing,
+            'extra_skills' => array_slice($extra, 0, 10),
+            'explanation' => $missing === []
+                ? __('Your analyzed resume covers every skill explicitly listed for this role.')
+                : __('Your strongest overlap is :skills. Build evidence for :missing next.', [
+                    'skills' => $matched === [] ? __('no explicitly listed skills') : implode(', ', $matched),
+                    'missing' => implode(', ', $missing),
+                ]),
+        ];
+    }
+
+    /** @param mixed $skills @return list<string> */
+    private function normalizedSkills(mixed $skills): array
+    {
+        if (! is_array($skills)) {
+            return [];
+        }
+
+        return collect($skills)->filter('is_string')->map(fn (string $skill): string => trim(mb_strtolower($skill)))
+            ->filter()->unique()->values()->all();
     }
 
     /**

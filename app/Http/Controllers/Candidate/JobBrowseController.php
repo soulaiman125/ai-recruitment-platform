@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\JobPosting;
 use App\Models\User;
+use App\Services\ResumeAnalysisService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ use Inertia\Response;
 
 class JobBrowseController extends Controller
 {
+    public function __construct(private readonly ResumeAnalysisService $analyses) {}
     /**
      * List every published job posting, newest first.
      */
@@ -106,6 +108,12 @@ class JobBrowseController extends Controller
 
         $profile = $user->candidateProfile;
 
+        $resume = $profile?->resumes()->with('analysis')
+            ->orderByDesc('is_default')
+            ->latest()
+            ->first();
+        $aiMatch = $resume === null ? null : $this->analyses->matchDetails($resume, $job);
+
         return Inertia::render('candidate/jobs/show', [
             'job' => $job,
             'hasApplied' => $profile !== null && $job->applications()
@@ -121,6 +129,7 @@ class JobBrowseController extends Controller
                 ->latest()
                 ->latest('id')
                 ->get(),
+            'ai_match' => $aiMatch,
         ]);
     }
 }

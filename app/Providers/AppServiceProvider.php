@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use InvalidArgumentException;
+use App\Services\AI\OpenRouterProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -80,6 +81,7 @@ class AppServiceProvider extends ServiceProvider
             return match ($provider) {
                 'gemini' => new GeminiProvider,
                 'openai' => new OpenAiProvider,
+                'openrouter' => new OpenRouterProvider,
                 default => throw new InvalidArgumentException(
                     sprintf(
                         'Unsupported AI_PROVIDER [%s]. Expected "gemini" or "openai".',

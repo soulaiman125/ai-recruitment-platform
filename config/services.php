@@ -48,4 +48,9 @@ return [
         'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
     ],
 
+    'openrouter' => [
+    'key' => env('OPENROUTER_API_KEY'),
+    'model' => env('OPENROUTER_MODEL', 'qwen/qwen3-235b-a22b:free'),
+],
+
 ];

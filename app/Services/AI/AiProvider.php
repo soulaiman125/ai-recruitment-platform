@@ -37,6 +37,16 @@ interface AiProvider
     public function matchResumeToJob(string $resumeText, string $jobDescription): int;
 
     /**
+     * Complete a bounded JSON-only recruitment workflow through the configured
+     * provider. All AI capability remains behind the existing vendor contract.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws AiProviderException
+     */
+    public function completeJson(string $prompt): array;
+
+    /**
      * The name persisted to `resume_analyses.ai_provider`.
      */
     public function name(): string;
