@@ -44,8 +44,17 @@ export type JobCompany = {
 };
 
 /** A posting rendered for candidates, with its company eager-loaded. */
+export type AiMatch = {
+    score: number;
+    matched_skills: string[];
+    missing_skills: string[];
+    extra_skills: string[];
+    explanation: string;
+};
+
 export type JobPostingWithCompany = JobPosting & {
     company: JobCompany;
+    ai_match?: AiMatch | null;
 };
 
 export const EMPLOYMENT_TYPES: readonly EmploymentType[] = [

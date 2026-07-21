@@ -209,7 +209,7 @@ class ResumeAnalysisService
             return [];
         }
 
-        return collect($skills)->filter('is_string')->map(fn (string $skill): string => trim(mb_strtolower($skill)))
+        return collect($skills)->filter(fn ($skill) => is_string($skill))->map(fn (string $skill): string => trim(mb_strtolower($skill)))
             ->filter()->unique()->values()->all();
     }
 

@@ -73,6 +73,9 @@ class JobBrowseController extends Controller
         foreach ($jobs as $job) {
             $job->setAttribute('ai_match', $aiMatches[$job->id] ?? null);
         }
+        $jobs = $jobs->sortByDesc(function ($job) {
+        return $job->ai_match['score'] ?? -1;
+            })->values();
 
         return Inertia::render('candidate/jobs/index', [
             'jobs' => $jobs,
