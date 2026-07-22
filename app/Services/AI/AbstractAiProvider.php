@@ -54,6 +54,10 @@ abstract class AbstractAiProvider implements AiProvider
     {
         return $this->decodeJson($this->complete($prompt));
     }
+    public function chat(string $prompt): string
+{
+    return $this->complete($prompt);
+}
 
     /**
      * The analysis prompt. Three things keep the output parseable: the response

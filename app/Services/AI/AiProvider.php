@@ -50,4 +50,10 @@ interface AiProvider
      * The name persisted to `resume_analyses.ai_provider`.
      */
     public function name(): string;
+    /**
+ * Chat with the configured AI provider.
+ *
+ * @throws AiProviderException
+ */
+public function chat(string $prompt): string;
 }

@@ -2,23 +2,103 @@ import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Bot, FileText, Briefcase, GraduationCap, MessageSquare } from 'lucide-react';
-import { useState, FormEvent } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { Bot, FileText, Briefcase, GraduationCap, MessageSquare, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from 'react';
+import axios from 'axios';
+import { ask } from '@/routes/candidate/ai-coach';
+
+type ChatMessage = {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    createdAt: string;
+};
+
+// crypto.randomUUID() khadam f browsers modernes o f Node 19+
+const generateId = () => crypto.randomUUID();
 
 export default function AiCoachPage() {
     const [input, setInput] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-    // Sprint 1: makayn hta API call, ghir console.log bach ntsna l'events khaddamin.
-    // F Sprint 2 ghadi nbedlo hadi b axios.post(route('ai-coach.ask'), ...)
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        if (!input.trim()) return;
-        console.log('Ask AI submitted with:', input);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Auto scroll l akher rissala
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages, loading]);
+
+    const sendMessage = async (text: string) => {
+        const message = text.trim();
+        if (!message || loading) return;
+
+        setLoading(true);
+        setError(null);
+        setInput('');
+
+        // Rissalat user kat-bane mabachra, qbel majawbach l AI
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: generateId(),
+                role: 'user',
+                content: message,
+                createdAt: new Date().toISOString(),
+            },
+        ]);
+
+        try {
+            const response = await axios.post(ask().url, {
+                message,
+            });
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: generateId(),
+                    role: 'assistant',
+                    content: response.data.answer,
+                    createdAt: new Date().toISOString(),
+                },
+            ]);
+        } catch (err) {
+            console.error(err);
+            setError('Wqe chi mochkil, 3awd jarreb men b3d.');
+
+            // Zid rissala fl chat bach l mohadata tbqa wadha
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: generateId(),
+                    role: 'assistant',
+                    content: 'Sorry, something went wrong. Please try again.',
+                    createdAt: new Date().toISOString(),
+                },
+            ]);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        sendMessage(input);
+    };
+
+    // Enter = sift, Shift+Enter = satr jdid
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(input);
+        }
+    };
+
+    // Suggested prompt: ghi kaye3mar Textarea, user howa li kaydoz Ask AI
     const handleSuggestedPrompt = (prompt: string) => {
-        console.log('Suggested prompt clicked:', prompt);
         setInput(prompt);
     };
 
@@ -41,14 +121,61 @@ export default function AiCoachPage() {
                             </p>
                         </div>
 
+                        {(messages.length > 0 || loading) && (
+                            <div
+                                ref={scrollRef}
+                                className="max-h-[500px] space-y-4 overflow-y-auto rounded-md border p-4"
+                            >
+                                {messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div
+                                            className={`max-w-[80%] rounded-lg p-3 ${
+                                                msg.role === 'user'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-muted'
+                                            }`}
+                                        >
+                                            <p className="mb-1 text-xs font-semibold">
+                                                {msg.role === 'user' ? 'You' : 'AI Coach'}
+                                            </p>
+                                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {loading && (
+                                    <div className="flex justify-start">
+                                        <div className="max-w-[80%] rounded-lg bg-muted p-3">
+                                            <p className="mb-1 text-xs font-semibold">AI Coach</p>
+                                            <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                AI is typing...
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit} className="flex gap-2">
-                            <Input
+                            <Textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Ask AI anything..."
+                                onKeyDown={handleKeyDown}
+                                placeholder="Ask AI anything... (Enter to send, Shift+Enter for new line)"
+                                disabled={loading}
+                                rows={2}
+                                className="resize-none"
                             />
-                            <Button type="submit" disabled={!input.trim()}>Ask AI</Button>
+                            <Button type="submit" disabled={loading || !input.trim()}>
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ask AI'}
+                            </Button>
                         </form>
+
+                        {error && <p className="text-sm text-red-500">{error}</p>}
                     </CardContent>
                 </Card>
 
@@ -57,19 +184,39 @@ export default function AiCoachPage() {
                         <CardTitle>Suggested Prompts</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-3 md:grid-cols-2">
-                        <Button variant="outline" className="justify-start" onClick={() => handleSuggestedPrompt('Review my CV')}>
+                        <Button
+                            variant="outline"
+                            className="justify-start"
+                            onClick={() => handleSuggestedPrompt('Review my CV')}
+                            disabled={loading}
+                        >
                             <FileText className="mr-2 h-4 w-4" />
                             Review my CV
                         </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleSuggestedPrompt('Recommend Jobs')}>
+                        <Button
+                            variant="outline"
+                            className="justify-start"
+                            onClick={() => handleSuggestedPrompt('Recommend Jobs')}
+                            disabled={loading}
+                        >
                             <Briefcase className="mr-2 h-4 w-4" />
                             Recommend Jobs
                         </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleSuggestedPrompt('Skills to Learn')}>
+                        <Button
+                            variant="outline"
+                            className="justify-start"
+                            onClick={() => handleSuggestedPrompt('Skills to Learn')}
+                            disabled={loading}
+                        >
                             <GraduationCap className="mr-2 h-4 w-4" />
                             Skills to Learn
                         </Button>
-                        <Button variant="outline" className="justify-start" onClick={() => handleSuggestedPrompt('Interview Preparation')}>
+                        <Button
+                            variant="outline"
+                            className="justify-start"
+                            onClick={() => handleSuggestedPrompt('Interview Preparation')}
+                            disabled={loading}
+                        >
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Interview Preparation
                         </Button>

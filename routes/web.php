@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // AI Coach (Sprint 1: page bghir logic, POST /ask ghadi tzad f Sprint 2)
         Route::get('ai-coach', [AiCoachController::class, 'index'])->name('ai-coach.index');
+        Route::post('ai-coach/ask', [AiCoachController::class, 'ask'])->name('ai-coach.ask');
     });
 });
 
