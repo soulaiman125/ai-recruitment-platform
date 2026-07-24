@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -37,14 +38,8 @@ use Spatie\Permission\Traits\HasRoles;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -54,41 +49,28 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         ];
     }
 
-    /**
-     * Send the email verification notification immediately.
-     */
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmail);
     }
 
-    /**
-     * Get the recruiter profile associated with the user.
-     *
-     * @return HasOne<RecruiterProfile, $this>
-     */
     public function recruiterProfile(): HasOne
     {
         return $this->hasOne(RecruiterProfile::class);
     }
 
-    /**
-     * Get the candidate profile associated with the user.
-     *
-     * @return HasOne<CandidateProfile, $this>
-     */
     public function candidateProfile(): HasOne
     {
         return $this->hasOne(CandidateProfile::class);
     }
 
-    /**
-     * Get the company owned by the user.
-     *
-     * @return HasOne<Company, $this>
-     */
     public function ownedCompany(): HasOne
     {
         return $this->hasOne(Company::class, 'user_id');
+    }
+
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
     }
 }

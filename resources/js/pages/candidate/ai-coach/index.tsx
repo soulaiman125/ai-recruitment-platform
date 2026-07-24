@@ -25,6 +25,7 @@ export default function AiCoachPage() {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [conversationId, setConversationId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -58,7 +59,13 @@ export default function AiCoachPage() {
         try {
             const response = await axios.post(ask().url, {
                 message,
+                conversation_id: conversationId,
             });
+
+            if (response.data.conversation_id) {
+                setConversationId(response.data.conversation_id);
+            }
+
             setMessages((prev) => [
                 ...prev,
                 {
@@ -151,8 +158,9 @@ export default function AiCoachPage() {
                                                 >
                                                     {msg.content}
                                                 </ReactMarkdown>
-                                            </div>                                        </div>
-                                           </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
 
                                 {loading && (
