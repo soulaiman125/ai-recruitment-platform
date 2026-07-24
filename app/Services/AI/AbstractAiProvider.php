@@ -25,9 +25,14 @@ abstract class AbstractAiProvider implements AiProvider
     /**
      * Turn a prompt into the model's raw completion text.
      *
+     * $expectJson tells the vendor transport whether to force a structured
+     * (JSON-only) completion. Recruitment workflows that parse the result
+     * need it; free-form chat must NOT set it, or the vendor will coerce a
+     * conversational answer into an invented JSON shape instead of prose.
+     *
      * @throws AiProviderException
      */
-    abstract protected function complete(string $prompt): string;
+    abstract protected function complete(string $prompt, bool $expectJson): string;
 
     /**
      * @return AnalysisResult
@@ -35,7 +40,7 @@ abstract class AbstractAiProvider implements AiProvider
     public function analyzeResume(string $resumeText, ?string $jobContext = null): array
     {
         $decoded = $this->decodeJson(
-            $this->complete($this->analysisPrompt($resumeText, $jobContext))
+            $this->complete($this->analysisPrompt($resumeText, $jobContext), expectJson: true)
         );
 
         return $this->normalizeAnalysis($decoded);
@@ -44,7 +49,7 @@ abstract class AbstractAiProvider implements AiProvider
     public function matchResumeToJob(string $resumeText, string $jobDescription): int
     {
         $decoded = $this->decodeJson(
-            $this->complete($this->matchPrompt($resumeText, $jobDescription))
+            $this->complete($this->matchPrompt($resumeText, $jobDescription), expectJson: true)
         );
 
         return $this->toScore($decoded['match_score'] ?? null);
@@ -52,12 +57,13 @@ abstract class AbstractAiProvider implements AiProvider
 
     public function completeJson(string $prompt): array
     {
-        return $this->decodeJson($this->complete($prompt));
+        return $this->decodeJson($this->complete($prompt, expectJson: true));
     }
+
     public function chat(string $prompt): string
-{
-    return $this->complete($prompt);
-}
+    {
+        return $this->complete($prompt, expectJson: false);
+    }
 
     /**
      * The analysis prompt. Three things keep the output parseable: the response

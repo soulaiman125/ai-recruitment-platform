@@ -19,7 +19,7 @@ class GeminiProvider extends AbstractAiProvider
         return 'gemini';
     }
 
-    protected function complete(string $prompt): string
+    protected function complete(string $prompt, bool $expectJson): string
     {
         $key = config('services.gemini.key');
         $model = config('services.gemini.model');
@@ -30,6 +30,19 @@ class GeminiProvider extends AbstractAiProvider
 
         if (! is_string($model) || $model === '') {
             throw new AiProviderException('No Gemini model is configured.');
+        }
+
+        $generationConfig = [
+            // Scoring should be reproducible; chat can breathe a little more.
+            'temperature' => $expectJson ? 0.2 : 0.7,
+        ];
+
+        if ($expectJson) {
+            // The prompt demands JSON; this makes the API enforce it, which
+            // all but eliminates markdown fences in the output. Never set
+            // this for free-form chat: Gemini would invent a JSON shape
+            // instead of replying in plain conversational text.
+            $generationConfig['responseMimeType'] = 'application/json';
         }
 
         try {
@@ -45,13 +58,7 @@ class GeminiProvider extends AbstractAiProvider
                     'contents' => [
                         ['parts' => [['text' => $prompt]]],
                     ],
-                    'generationConfig' => [
-                        // The prompt demands JSON; this makes the API enforce it,
-                        // which all but eliminates markdown fences in the output.
-                        'responseMimeType' => 'application/json',
-                        // Scoring should be reproducible, not creative.
-                        'temperature' => 0.2,
-                    ],
+                    'generationConfig' => $generationConfig,
                 ]);
         } catch (ConnectionException $e) {
             throw new AiProviderException('Could not reach Gemini: '.$e->getMessage(), previous: $e);

@@ -7,6 +7,9 @@ import { Bot, FileText, Briefcase, GraduationCap, MessageSquare, Loader2 } from 
 import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from 'react';
 import axios from 'axios';
 import { ask } from '@/routes/candidate/ai-coach';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 type ChatMessage = {
     id: string;
@@ -141,9 +144,15 @@ export default function AiCoachPage() {
                                             <p className="mb-1 text-xs font-semibold">
                                                 {msg.role === 'user' ? 'You' : 'AI Coach'}
                                             </p>
-                                            <p className="whitespace-pre-wrap">{msg.content}</p>
-                                        </div>
-                                    </div>
+                                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    rehypePlugins={[rehypeHighlight]}
+                                                >
+                                                    {msg.content}
+                                                </ReactMarkdown>
+                                            </div>                                        </div>
+                                           </div>
                                 ))}
 
                                 {loading && (
